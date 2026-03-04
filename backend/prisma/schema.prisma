@@ -1,0 +1,121 @@
+// Velle - Prisma Schema
+// Base de datos PostgreSQL para plataforma financiera
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  phone         String?  @unique
+  passwordHash  String   @map("password_hash")
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  kycStatus     KycStatus @default(PENDING) @map("kyc_status")
+  mfaEnabled    Boolean  @default(false) @map("mfa_enabled")
+  mfaSecret     String?  @map("mfa_secret")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  wallet        Wallet?
+  kycDocuments  KycDocument[]
+  transactions  Transaction[]
+  auditLogs     AuditLog[]
+}
+
+enum KycStatus {
+  PENDING
+  UNDER_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+model KycDocument {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  type          String   // id_front, id_back, selfie, proof_of_address
+  url           String   // S3/secure storage
+  status        KycStatus @default(PENDING)
+  rejectionReason String? @map("rejection_reason")
+  verifiedAt    DateTime? @map("verified_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Wallet {
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  balance       Decimal  @default(0) @db.Decimal(18, 6) // USDT only
+  currency      String   @default("USDT")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  type          TransactionType
+  amount        Decimal  @db.Decimal(18, 6)
+  fee           Decimal  @default(0) @db.Decimal(18, 6)
+  currency      String   @default("USDT")
+  status        TransactionStatus @default(PENDING)
+  metadata      Json?    // extra data per type
+  recipientId   String?  @map("recipient_id")
+  merchantId    String?  @map("merchant_id")
+  externalRef   String?  @unique @map("external_ref") // Zelle ref, etc
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  P2P
+  ZELLE_IN
+  ZELLE_OUT
+  MERCHANT_PAY
+  CARD_PAYMENT
+  VES_DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?  @map("user_id")
+  action        String
+  resource      String
+  resourceId    String?  @map("resource_id")
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User?    @relation(fields: [userId], references: [id])
+}
+
+model Merchant {
+  id            String   @id @default(cuid())
+  name          String
+  email         String
+  documentId    String   @unique @map("document_id")
+  walletAddress String?  @map("wallet_address")
+  qrCode        String?  @unique @map("qr_code")
+  status        String   @default("active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+}
