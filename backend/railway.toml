@@ -8,5 +8,3 @@ builder = "nixpacks"
 startCommand = "npx prisma migrate deploy && node dist/src/main.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-healthcheckPath = "/health"
-healthcheckTimeout = 30
