@@ -4,6 +4,9 @@ import {SwaggerModule, DocumentBuilder} from '@nestjs/swagger';
 import helmet from 'helmet';
 import {AppModule} from './app.module';
 
+console.log('Node starting...');
+console.log('PORT:', process.env.PORT);
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -38,4 +41,7 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`Velle API running on port ${port}`);
 }
-bootstrap().catch(console.error);
+bootstrap().catch(err => {
+  console.error('Bootstrap failed:', err);
+  process.exit(1);
+});
