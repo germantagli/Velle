@@ -9,8 +9,10 @@ import {KycModule} from './kyc/kyc.module';
 import {UserModule} from './user/user.module';
 import {MerchantModule} from './merchant/merchant.module';
 import {CardsModule} from './cards/cards.module';
+import {AppController} from './app.controller';
 
 @Module({
+  controllers: [AppController],
   imports: [
     ConfigModule.forRoot({isGlobal: true}),
     PrismaModule,
