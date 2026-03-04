@@ -10,6 +10,8 @@ Desde la raíz del proyecto:
 docker compose up -d
 ```
 
+Requiere [Docker](https://www.docker.com/get-started) instalado.
+
 Esto inicia:
 - **PostgreSQL** en el puerto 5432 (usuario: `velle`, contraseña: `velle123`, DB: `velle`)
 - **Backend API** en el puerto 3000 (con migraciones aplicadas)
