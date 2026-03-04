@@ -1,7 +1,8 @@
 import axios, {AxiosInstance, AxiosError} from 'axios';
 import {useAuthStore} from '../store/authStore';
+import {API_URL} from '../config';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:3000';
+const API_BASE_URL = API_URL;
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
