@@ -26,22 +26,23 @@ export default function LoginScreen({navigation}: any): React.JSX.Element {
     }
     setLoading(true);
     try {
-      const {data: tokenData} = await authApi.login(email.trim(), password);
-      const {data: profile} = await import('../../services/api').then(m =>
-        m.api.get('/user/profile'),
-      );
+      const {data} = await authApi.login(email.trim(), password);
+      const tokenData = data as {access_token: string; user?: any};
+      const profile = tokenData.user;
       setAuth({
         token: tokenData.access_token,
         refreshToken: tokenData.access_token,
-        user: {
-          id: profile.id,
-          email: profile.email,
-          phone: profile.phone || '',
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          kycStatus: profile.kycStatus,
-        },
-        needsMFA: profile.mfaEnabled && !profile.mfaVerified,
+        user: profile
+          ? {
+              id: profile.id,
+              email: profile.email,
+              phone: profile.phone || '',
+              firstName: profile.firstName || '',
+              lastName: profile.lastName || '',
+              kycStatus: profile.kycStatus,
+            }
+          : undefined,
+        needsMFA: profile?.mfaEnabled && !profile?.mfaVerified,
       });
     } catch (err: any) {
       const msg =

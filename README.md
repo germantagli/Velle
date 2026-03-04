@@ -1,64 +1,62 @@
 # Velle - Plataforma Financiera Venezuela
 
-Aplicación móvil nativa multiplataforma (React Native) para Android e iOS que funciona como plataforma financiera segura y legal para usuarios en Venezuela.
+Aplicación móvil nativa multiplataforma (React Native) para Android e iOS.
 
-## Características Principales
+## 🚀 Inicio rápido con Docker (un solo comando)
 
-- **Wallet USDT:** Saldo en USDT únicamente
-- **Zelle:** Enviar y recibir dinero desde EE.UU.
-- **Transferencias P2P:** Entre usuarios de la app
-- **Pagos en comercios:** QR o NFC
-- **Tarjetas virtuales:** Visa/Mastercard vía partner regulado
-- **KYC/AML completo:** Cumplimiento regulatorio
-- **AI opcional:** Soporte y detección de fraude
+Desde la raíz del proyecto:
 
-## Estructura del Proyecto
-
-```
-Velle/
-├── mobile/                 # App React Native (Android + iOS)
-├── backend/                # API REST + servicios
-├── docs/                   # Documentación técnica
-├── ARCHITECTURE.md         # Arquitectura del sistema
-└── README.md               # Este archivo
-```
-
-## Requisitos Previos
-
-- Node.js 18+
-- npm o yarn
-- React Native CLI
-- Android Studio (para Android)
-- Xcode (para iOS, solo macOS)
-- PostgreSQL 14+
-- Redis 7+
-
-## Inicio Rápido
-
-### Backend
 ```bash
-cd backend
-npm install
-cp .env.example .env  # Configurar variables de entorno
-npm run migrate       # Ejecutar migraciones
-npm run dev           # Iniciar servidor de desarrollo
+docker compose up -d
 ```
 
-### App Móvil
+Esto inicia:
+- **PostgreSQL** en el puerto 5432 (usuario: `velle`, contraseña: `velle123`, DB: `velle`)
+- **Backend API** en el puerto 3000 (con migraciones aplicadas)
+
+La API estará disponible en `http://localhost:3000`.
+
+### Comandos útiles
+
+```bash
+# Iniciar todo
+docker compose up -d
+
+# Ver logs
+docker compose logs -f
+
+# Detener
+docker compose down
+
+# Reconstruir tras cambios
+docker compose up -d --build
+```
+
+### Datos de prueba (opcional)
+
+Tras el primer arranque, para crear usuario y comercio de prueba:
+
+```bash
+docker compose exec backend npx ts-node prisma/seed.ts
+```
+
+- Usuario: `test@velle.app` / `password123`
+- Comercio QR: `MERCHANT-DEMO-001`
+
+---
+
+## Estructura
+
+- `mobile/` - App React Native
+- `backend/` - API NestJS
+- `docs/` - Documentación
+
+## App móvil
+
 ```bash
 cd mobile
 npm install
-npx react-native run-android   # Android
-npx react-native run-ios       # iOS (solo macOS)
+npx react-native run-android
 ```
 
-## Documentación
-
-- [Arquitectura](./ARCHITECTURE.md)
-- [Seguridad y Cumplimiento](./docs/SECURITY.md)
-- [APIs](./docs/API.md)
-- [Guía de Despliegue](./docs/DEPLOYMENT.md)
-
-## Licencia
-
-Propietario - Uso interno y comercial según términos acordados.
+Configura `API_URL` para apuntar a `http://10.0.2.2:3000` (Android emulador) o tu IP local.

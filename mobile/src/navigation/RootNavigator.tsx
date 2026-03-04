@@ -35,6 +35,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator(): React.JSX.Element {
   const {isAuthenticated, isKYCComplete, needsMFA = false} = useAuthStore();
+  const user = useAuthStore(s => s.user);
 
   return (
     <Stack.Navigator
@@ -49,17 +50,41 @@ export function RootNavigator(): React.JSX.Element {
         </>
       ) : needsMFA ? (
         <Stack.Screen name="MFA" component={MFAScreen} />
-      ) : !isKYCComplete ? (
+      ) : !isKYCComplete && user?.kycStatus !== 'UNDER_REVIEW' ? (
         <Stack.Screen name="KYC" component={KYCScreen} />
       ) : (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
-          <Stack.Screen name="ZelleSend" component={ZelleSendScreen} />
-          <Stack.Screen name="ZelleReceive" component={ZelleReceiveScreen} />
-          <Stack.Screen name="P2PTransfer" component={P2PTransferScreen} />
-          <Stack.Screen name="MerchantPay" component={MerchantPayScreen} />
-          <Stack.Screen name="VirtualCard" component={VirtualCardScreen} />
-          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
+          <Stack.Screen
+            name="ZelleSend"
+            component={ZelleSendScreen}
+            options={{headerShown: true, title: 'Enviar a Zelle'}}
+          />
+          <Stack.Screen
+            name="ZelleReceive"
+            component={ZelleReceiveScreen}
+            options={{headerShown: true, title: 'Recibir Zelle'}}
+          />
+          <Stack.Screen
+            name="P2PTransfer"
+            component={P2PTransferScreen}
+            options={{headerShown: true, title: 'Transferir P2P'}}
+          />
+          <Stack.Screen
+            name="MerchantPay"
+            component={MerchantPayScreen}
+            options={{headerShown: true, title: 'Pagar comercio'}}
+          />
+          <Stack.Screen
+            name="VirtualCard"
+            component={VirtualCardScreen}
+            options={{headerShown: true, title: 'Tarjeta virtual'}}
+          />
+          <Stack.Screen
+            name="TransactionDetail"
+            component={TransactionDetailScreen}
+            options={{headerShown: true, title: 'Detalle'}}
+          />
         </>
       )}
     </Stack.Navigator>

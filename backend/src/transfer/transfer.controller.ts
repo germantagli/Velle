@@ -1,4 +1,4 @@
-import {Controller, Post, Body, UseGuards} from '@nestjs/common';
+import {Controller, Get, Post, Body, Query, UseGuards} from '@nestjs/common';
 import {ApiTags, ApiBearerAuth} from '@nestjs/swagger';
 import {TransferService} from './transfer.service';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
@@ -10,6 +10,14 @@ import {CurrentUser} from '../common/current-user.decorator';
 @Controller('transfer')
 export class TransferController {
   constructor(private transfer: TransferService) {}
+
+  @Get('search-user')
+  async searchUser(
+    @CurrentUser() _user: {id: string},
+    @Query('q') q: string,
+  ) {
+    return this.transfer.searchUser(q);
+  }
 
   @Post('p2p')
   async p2p(

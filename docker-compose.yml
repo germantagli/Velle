@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: velle-db
+    environment:
+      POSTGRES_USER: velle
+      POSTGRES_PASSWORD: velle123
+      POSTGRES_DB: velle
+    ports:
+      - "5432:5432"
+    volumes:
+      - velle-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U velle -d velle"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: velle-api
+    environment:
+      DATABASE_URL: postgresql://velle:velle123@postgres:5432/velle
+      JWT_SECRET: change-this-in-production-secret-key
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  velle-postgres-data:

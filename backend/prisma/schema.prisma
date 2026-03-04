@@ -119,3 +119,16 @@ model Merchant {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 }
+
+model VirtualCard {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  lastFour      String   @map("last_four")
+  brand         String   // visa, mastercard
+  expiryMonth   Int      @map("expiry_month")
+  expiryYear    Int      @map("expiry_year")
+  frozen        Boolean  @default(false)
+  externalId    String?  @unique @map("external_id") // Partner card ID
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+}

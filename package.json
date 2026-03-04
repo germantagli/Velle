@@ -1,0 +1,13 @@
+{
+  "name": "velle",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:restart": "docker compose down && docker compose up -d --build",
+    "docker:logs": "docker compose logs -f",
+    "start": "docker compose up -d"
+  },
+  "description": "Velle - Plataforma Financiera Venezuela"
+}

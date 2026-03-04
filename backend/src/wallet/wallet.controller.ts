@@ -1,4 +1,4 @@
-import {Controller, Get, Query, UseGuards} from '@nestjs/common';
+import {Controller, Get, Query, Param, UseGuards} from '@nestjs/common';
 import {ApiTags, ApiBearerAuth} from '@nestjs/swagger';
 import {WalletService} from './wallet.service';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
@@ -14,6 +14,14 @@ export class WalletController {
   @Get('balance')
   async balance(@CurrentUser() user: {id: string}) {
     return this.wallet.getBalance(user.id);
+  }
+
+  @Get('transactions/:id')
+  async transaction(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+  ) {
+    return this.wallet.getTransaction(user.id, id);
   }
 
   @Get('transactions')

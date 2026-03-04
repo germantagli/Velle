@@ -15,6 +15,18 @@ export class WalletService {
     };
   }
 
+  async getTransaction(userId: string, id: string) {
+    const tx = await this.prisma.transaction.findFirst({
+      where: {id, userId},
+    });
+    if (!tx) return null;
+    return {
+      ...tx,
+      amount: tx.amount.toString(),
+      fee: tx.fee.toString(),
+    };
+  }
+
   async getTransactions(userId: string, page = 1, limit = 20) {
     const [items, total] = await Promise.all([
       this.prisma.transaction.findMany({
@@ -25,6 +37,11 @@ export class WalletService {
       }),
       this.prisma.transaction.count({where: {userId}}),
     ]);
-    return {items, total, page, limit};
+    const serialized = items.map(i => ({
+      ...i,
+      amount: i.amount.toString(),
+      fee: i.fee.toString(),
+    }));
+    return {items: serialized, total, page, limit};
   }
 }

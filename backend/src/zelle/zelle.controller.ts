@@ -22,8 +22,13 @@ export class ZelleController {
   @Post('send')
   async send(
     @CurrentUser() user: {id: string},
-    @Body() body: {amount: number; zelleEmail: string},
+    @Body() body: {amount: number; zelleEmail: string; note?: string},
   ) {
-    return this.zelle.sendToZelle(user.id, body.amount, body.zelleEmail);
+    return this.zelle.sendToZelle(
+      user.id,
+      body.amount,
+      body.zelleEmail,
+      body.note,
+    );
   }
 }
