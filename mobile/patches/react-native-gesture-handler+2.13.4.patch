@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt
+index 2e831b7..f2fb74e 100644
+--- a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt
++++ b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/react/RNGestureHandlerModule.kt
+@@ -467,7 +467,7 @@ class RNGestureHandlerModule(reactContext: ReactApplicationContext?) :
+     return try {
+       SoLoader.loadLibrary("gesturehandler")
+       val jsContext = reactApplicationContext.javaScriptContextHolder
+-      decorateRuntime(jsContext.get())
++      decorateRuntime(jsContext?.get() ?: return false)
+       true
+     } catch (exception: Exception) {
+       Log.w("[RNGestureHandler]", "Could not install JSI bindings.")
