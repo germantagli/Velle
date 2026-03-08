@@ -21,7 +21,8 @@ async function main() {
     update: {},
     create: {
       userId: user.id,
-      balance: 1000,
+      balanceUsdt: 1000,
+      balanceVes: 0,
     },
   });
   await prisma.merchant.upsert({
@@ -35,6 +36,31 @@ async function main() {
       status: 'active',
     },
   });
+
+  const tier = await prisma.limitTier.upsert({
+    where: {name: 'verified'},
+    update: {},
+    create: {
+      name: 'verified',
+      dailyLimitUsdt: 5000,
+      monthlyLimitUsdt: 20000,
+    },
+  });
+
+  await prisma.user.update({
+    where: {id: user.id},
+    data: {limitTierId: tier.id},
+  });
+
+  await prisma.systemConfig.upsert({
+    where: {key: 'auto_convert_ves_on_deposit'},
+    update: {},
+    create: {
+      key: 'auto_convert_ves_on_deposit',
+      value: false,
+    },
+  });
+
   console.log('Seed completed');
 }
 

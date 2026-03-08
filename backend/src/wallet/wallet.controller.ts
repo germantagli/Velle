@@ -29,11 +29,13 @@ export class WalletController {
     @CurrentUser() user: {id: string},
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('type') type?: string,
   ) {
     return this.wallet.getTransactions(
       user.id,
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,
+      type,
     );
   }
 }

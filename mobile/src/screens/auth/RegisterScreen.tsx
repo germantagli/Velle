@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {authApi} from '../../services/api';
 
@@ -21,6 +22,8 @@ export default function RegisterScreen({navigation}: any): React.JSX.Element {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validate = () => {
     if (!firstName.trim()) return 'Ingresa tu nombre';
@@ -48,9 +51,9 @@ export default function RegisterScreen({navigation}: any): React.JSX.Element {
         lastName: lastName.trim(),
         phone: phone.trim() || undefined,
       });
-      Alert.alert('Éxito', 'Cuenta creada. Inicia sesión.', () =>
-        navigation.replace('Login'),
-      );
+      Alert.alert('Éxito', 'Cuenta creada. Inicia sesión.', [
+        {text: 'OK', onPress: () => navigation.replace('Login')},
+      ]);
     } catch (e: any) {
       const msg =
         e.response?.data?.message || e.message || 'Error al registrarse';
@@ -104,23 +107,41 @@ export default function RegisterScreen({navigation}: any): React.JSX.Element {
         editable={!loading}
       />
       <Text style={styles.label}>Contraseña</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Mínimo 8 caracteres"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        editable={!loading}
-      />
+      <View style={styles.passwordWrapper}>
+        <TextInput
+          style={styles.inputWithIcon}
+          placeholder="Mínimo 8 caracteres"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          editable={!loading}
+        />
+        <TouchableOpacity
+          style={styles.eyeBtn}
+          onPress={() => setShowPassword(!showPassword)}
+          hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
+          <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁'}</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.label}>Confirmar contraseña</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Repite la contraseña"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        editable={!loading}
-      />
+      <View style={styles.passwordWrapper}>
+        <TextInput
+          style={styles.inputWithIcon}
+          placeholder="Repite la contraseña"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+          editable={!loading}
+        />
+        <TouchableOpacity
+          style={styles.eyeBtn}
+          onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+          hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
+          <Text style={styles.eyeIcon}>
+            {showConfirmPassword ? '🙈' : '👁'}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleRegister}
@@ -154,6 +175,29 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     backgroundColor: '#fafafa',
+  },
+  passwordWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  inputWithIcon: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 14,
+    paddingRight: 48,
+    fontSize: 16,
+    backgroundColor: '#fafafa',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  eyeIcon: {
+    fontSize: Platform.OS === 'ios' ? 20 : 22,
   },
   button: {
     backgroundColor: '#0066CC',

@@ -13,7 +13,7 @@ export class CardsService {
     const wallet = await this.prisma.wallet.findUnique({
       where: {userId},
     });
-    const balance = wallet?.balance.toString() ?? '0';
+    const balance = wallet?.balanceUsdt.toString() ?? '0';
     return {
       cards: cards.map(c => ({
         id: c.id,
@@ -46,7 +46,7 @@ export class CardsService {
     });
     return {
       ...card,
-      balance: wallet?.balance.toString() ?? '0',
+      balance: wallet?.balanceUsdt.toString() ?? '0',
     };
   }
 
@@ -60,7 +60,7 @@ export class CardsService {
     });
     return {
       ...card,
-      balance: wallet?.balance.toString() ?? '0',
+      balance: wallet?.balanceUsdt.toString() ?? '0',
     };
   }
 

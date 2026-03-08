@@ -70,7 +70,7 @@ export class AuthService {
       },
     });
     await this.prisma.wallet.create({
-      data: {userId: user.id},
+      data: {userId: user.id, balanceVes: 0, balanceUsdt: 0},
     });
     return {
       id: user.id,

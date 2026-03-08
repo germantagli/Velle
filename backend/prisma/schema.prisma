@@ -21,6 +21,7 @@ model User {
   kycStatus     KycStatus @default(PENDING) @map("kyc_status")
   mfaEnabled    Boolean  @default(false) @map("mfa_enabled")
   mfaSecret     String?  @map("mfa_secret")
+  limitTierId   String?  @map("limit_tier_id")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -28,6 +29,58 @@ model User {
   kycDocuments  KycDocument[]
   transactions  Transaction[]
   auditLogs     AuditLog[]
+  deposits      Deposit[]
+  withdrawals   Withdrawal[]
+  limitTier     LimitTier?  @relation(fields: [limitTierId], references: [id])
+  limitUsages   LimitUsage[]
+  bankAccounts  BankAccount[]
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model LimitTier {
+  id               String   @id @default(cuid())
+  name             String   @unique
+  dailyLimitUsdt   Decimal  @map("daily_limit_usdt") @db.Decimal(18, 6)
+  monthlyLimitUsdt Decimal  @map("monthly_limit_usdt") @db.Decimal(18, 6)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  users            User[]
+}
+
+model LimitUsage {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  periodType String   @map("period_type")
+  periodKey  String   @map("period_key")
+  amountUsdt Decimal @map("amount_usdt") @db.Decimal(18, 6)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodType, periodKey])
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  accountHolder String   @map("account_holder")
+  accountNumber String   @map("account_number")
+  routingNumber String   @map("routing_number")
+  accountType   String   @map("account_type")
+  bankName      String?  @map("bank_name")
+  lastFour      String   @map("last_four")
+  externalId    String?  @unique @map("external_id")
+  status        String   @default("pending")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  withdrawals   Withdrawal[]
 }
 
 enum KycStatus {
@@ -53,12 +106,57 @@ model KycDocument {
 model Wallet {
   id            String   @id @default(cuid())
   userId        String   @unique @map("user_id")
-  balance       Decimal  @default(0) @db.Decimal(18, 6) // USDT only
-  currency      String   @default("USDT")
+  balanceVes    Decimal  @default(0) @db.Decimal(18, 2) @map("balance_ves")
+  balanceUsdt   Decimal  @default(0) @db.Decimal(18, 6) @map("balance_usdt")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Deposit {
+  id            String       @id @default(cuid())
+  userId        String       @map("user_id")
+  amount        Decimal      @db.Decimal(18, 2)
+  reference     String       @unique
+  status        DepositStatus @default(PENDING)
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum DepositStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model Withdrawal {
+  id                String            @id @default(cuid())
+  userId            String            @map("user_id")
+  amount            Decimal           @db.Decimal(18, 6)
+  destination       String
+  destinationEmail  String?           @map("destination_email")
+  destinationName   String?           @map("destination_name")
+  bankAccountId     String?           @map("bank_account_id")
+  partnerTransferId String?           @map("partner_transfer_id")
+  usdAmount         Decimal?          @map("usd_amount") @db.Decimal(18, 2)
+  fee               Decimal?          @db.Decimal(18, 6)
+  etaMinutes        Int?              @map("eta_minutes")
+  metadata          Json?
+  status            WithdrawalStatus  @default(PENDING)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime?         @updatedAt @map("updated_at")
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankAccount       BankAccount?      @relation(fields: [bankAccountId], references: [id])
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model Transaction {
@@ -80,12 +178,16 @@ model Transaction {
 
 enum TransactionType {
   P2P
+  P2P_VES
   ZELLE_IN
   ZELLE_OUT
+  USA_BANK_WITHDRAWAL
   MERCHANT_PAY
   CARD_PAYMENT
   VES_DEPOSIT
   WITHDRAWAL
+  CONVERSION_VES_TO_USDT
+  CONVERSION_USDT_TO_VES
 }
 
 enum TransactionStatus {

@@ -19,6 +19,7 @@ const FEE_PERCENT = 2;
 export default function ZelleSendScreen({navigation}: any): React.JSX.Element {
   const [amount, setAmount] = useState('');
   const [zelleEmail, setZelleEmail] = useState('');
+  const [recipientName, setRecipientName] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +27,7 @@ export default function ZelleSendScreen({navigation}: any): React.JSX.Element {
     queryKey: ['wallet', 'balance'],
     queryFn: () => walletApi.getBalance().then(r => r.data),
   });
-  const balance = parseFloat(balanceData?.balance ?? '0');
+  const balance = parseFloat(balanceData?.balanceUsdt ?? balanceData?.balance ?? '0');
   const amountNum = parseFloat(amount) || 0;
   const fee = amountNum * (FEE_PERCENT / 100);
   const total = amountNum + fee;
@@ -46,10 +47,15 @@ export default function ZelleSendScreen({navigation}: any): React.JSX.Element {
     }
     setLoading(true);
     try {
-      await zelleApi.sendToZelle(amountNum, zelleEmail.trim(), note || undefined);
-      Alert.alert('Éxito', 'Transferencia enviada. El dinero llegará en minutos.', () =>
-        navigation.goBack(),
+      await zelleApi.sendToZelle(
+        amountNum,
+        zelleEmail.trim(),
+        recipientName.trim() || undefined,
+        note || undefined,
       );
+      Alert.alert('Éxito', 'Transferencia enviada. El dinero llegará en minutos.', [
+        {text: 'OK', onPress: () => navigation.goBack()},
+      ]);
     } catch (e: any) {
       const msg =
         e.response?.data?.message || e.message || 'Error al enviar';
@@ -92,6 +98,14 @@ export default function ZelleSendScreen({navigation}: any): React.JSX.Element {
           onChangeText={setZelleEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          editable={!loading}
+        />
+        <Text style={styles.label}>Nombre del receptor (opcional)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre del destinatario"
+          value={recipientName}
+          onChangeText={setRecipientName}
           editable={!loading}
         />
         <Text style={styles.label}>Nota (opcional)</Text>

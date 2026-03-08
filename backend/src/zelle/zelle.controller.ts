@@ -2,6 +2,7 @@ import {Controller, Post, Body, UseGuards} from '@nestjs/common';
 import {ApiTags, ApiBearerAuth} from '@nestjs/swagger';
 import {ZelleService} from './zelle.service';
 import {JwtAuthGuard} from '../auth/jwt-auth.guard';
+import {KycVerifiedGuard} from '../common/kyc-verified.guard';
 import {CurrentUser} from '../common/current-user.decorator';
 
 @ApiTags('zelle')
@@ -20,14 +21,16 @@ export class ZelleController {
   }
 
   @Post('send')
+  @UseGuards(KycVerifiedGuard)
   async send(
     @CurrentUser() user: {id: string},
-    @Body() body: {amount: number; zelleEmail: string; note?: string},
+    @Body() body: {amount: number; zelleEmail: string; recipientName?: string; note?: string},
   ) {
     return this.zelle.sendToZelle(
       user.id,
       body.amount,
       body.zelleEmail,
+      body.recipientName,
       body.note,
     );
   }

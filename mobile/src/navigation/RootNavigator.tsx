@@ -13,6 +13,10 @@ import MainTabs from './MainTabs';
 import ZelleSendScreen from '../screens/zelle/ZelleSendScreen';
 import ZelleReceiveScreen from '../screens/zelle/ZelleReceiveScreen';
 import P2PTransferScreen from '../screens/transfer/P2PTransferScreen';
+import DepositScreen from '../screens/wallet/DepositScreen';
+import ConvertScreen from '../screens/wallet/ConvertScreen';
+import USAWithdrawalScreen from '../screens/withdrawal/USAWithdrawalScreen';
+import AddBankAccountScreen from '../screens/withdrawal/AddBankAccountScreen';
 import MerchantPayScreen from '../screens/merchant/MerchantPayScreen';
 import VirtualCardScreen from '../screens/cards/VirtualCardScreen';
 import TransactionDetailScreen from '../screens/transactions/TransactionDetailScreen';
@@ -23,6 +27,10 @@ export type RootStackParamList = {
   KYC: undefined;
   MFA: {email: string};
   Main: undefined;
+  Deposit: undefined;
+  Convert: undefined;
+  USAWithdrawal: undefined;
+  AddBankAccount: undefined;
   ZelleSend: undefined;
   ZelleReceive: undefined;
   P2PTransfer: undefined;
@@ -55,6 +63,26 @@ export function RootNavigator(): React.JSX.Element {
       ) : (
         <>
           <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen
+            name="Deposit"
+            component={DepositScreen}
+            options={{headerShown: true, title: 'Agregar Bolívares'}}
+          />
+          <Stack.Screen
+            name="Convert"
+            component={ConvertScreen}
+            options={{headerShown: true, title: 'Convertir'}}
+          />
+          <Stack.Screen
+            name="USAWithdrawal"
+            component={USAWithdrawalScreen}
+            options={{headerShown: true, title: 'Retiro a USA'}}
+          />
+          <Stack.Screen
+            name="AddBankAccount"
+            component={AddBankAccountScreen}
+            options={{headerShown: true, title: 'Añadir cuenta USA'}}
+          />
           <Stack.Screen
             name="ZelleSend"
             component={ZelleSendScreen}

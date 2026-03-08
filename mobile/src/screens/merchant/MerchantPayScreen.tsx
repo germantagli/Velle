@@ -65,9 +65,9 @@ export default function MerchantPayScreen({
     setLoading(true);
     try {
       await transferApi.merchant(merchant.id, amountNum, 'qr');
-      Alert.alert('Éxito', `Pago de ${amountNum} USDT a ${merchant.name} realizado`, () =>
-        navigation.goBack(),
-      );
+      Alert.alert('Éxito', `Pago de ${amountNum} USDT a ${merchant.name} realizado`, [
+        {text: 'OK', onPress: () => navigation.goBack()},
+      ]);
     } catch (e: any) {
       const msg =
         e.response?.data?.message || e.message || 'Error al pagar';

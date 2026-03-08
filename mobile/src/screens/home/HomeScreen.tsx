@@ -18,8 +18,14 @@ export default function HomeScreen(): React.JSX.Element {
     queryFn: () => walletApi.getBalance().then(r => r.data),
   });
 
-  const balance = data?.balance ?? '0.00';
-  const currency = data?.currency ?? 'USDT';
+  const balanceVes = data?.balanceVes ?? data?.balance ?? '0';
+  const balanceUsdt = data?.balanceUsdt ?? data?.balance ?? '0';
+
+  const formatAmount = (val: string, decimals = 2) =>
+    parseFloat(val).toLocaleString('es-VE', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: 6,
+    });
 
   return (
     <ScrollView
@@ -28,17 +34,34 @@ export default function HomeScreen(): React.JSX.Element {
       refreshControl={
         <RefreshControl refreshing={isLoading} onRefresh={refetch} />
       }>
-      <View style={styles.card}>
+      <View style={styles.mainBalance}>
         <Text style={styles.label}>Tu saldo</Text>
-        <Text style={styles.balance}>
-          {parseFloat(balance).toLocaleString('es-VE', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 6,
-          })}{' '}
-          {currency}
-        </Text>
+        <Text style={styles.mainAmount}>{formatAmount(balanceUsdt)} USDT</Text>
+        <Text style={styles.secondary}>≈ {formatAmount(balanceVes)} VES</Text>
+      </View>
+      <View style={styles.balancesRow}>
+        <View style={[styles.card, styles.cardVes]}>
+          <Text style={styles.cardLabel}>VES</Text>
+          <Text style={styles.cardAmount}>{formatAmount(balanceVes)}</Text>
+        </View>
+        <View style={[styles.card, styles.cardUsdt]}>
+          <Text style={styles.cardLabel}>USDT</Text>
+          <Text style={styles.cardAmount}>{formatAmount(balanceUsdt)}</Text>
+        </View>
       </View>
       <View style={styles.actions}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => navigation.navigate('Deposit')}>
+          <Text style={styles.actionEmoji}>💵</Text>
+          <Text style={styles.actionLabel}>Agregar VES</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => navigation.navigate('Convert')}>
+          <Text style={styles.actionEmoji}>🔄</Text>
+          <Text style={styles.actionLabel}>Convertir</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => navigation.navigate('ZelleReceive')}>
@@ -55,13 +78,19 @@ export default function HomeScreen(): React.JSX.Element {
           style={styles.actionBtn}
           onPress={() => navigation.navigate('P2PTransfer')}>
           <Text style={styles.actionEmoji}>👤</Text>
-          <Text style={styles.actionLabel}>Transferir P2P</Text>
+          <Text style={styles.actionLabel}>Transferir</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => navigation.navigate('MerchantPay')}>
           <Text style={styles.actionEmoji}>🏪</Text>
           <Text style={styles.actionLabel}>Pagar comercio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => navigation.navigate('USAWithdrawal')}>
+          <Text style={styles.actionEmoji}>🇺🇸</Text>
+          <Text style={styles.actionLabel}>Retiro USA</Text>
         </TouchableOpacity>
       </View>
       <TouchableOpacity
@@ -81,12 +110,24 @@ export default function HomeScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#f5f5f5'},
   content: {padding: 16, paddingBottom: 32},
-  card: {
+  mainBalance: {
     backgroundColor: '#0066CC',
     borderRadius: 16,
     padding: 24,
-    marginBottom: 20,
+    marginBottom: 16,
   },
+  mainAmount: {fontSize: 28, fontWeight: 'bold', color: '#fff'},
+  secondary: {fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4},
+  balancesRow: {flexDirection: 'row', gap: 12, marginBottom: 20},
+  card: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 20,
+  },
+  cardVes: {backgroundColor: '#0d9488'},
+  cardUsdt: {backgroundColor: '#047857'},
+  cardLabel: {fontSize: 12, color: 'rgba(255,255,255,0.8)'},
+  cardAmount: {fontSize: 18, fontWeight: 'bold', color: '#fff'},
   label: {fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4},
   balance: {fontSize: 28, fontWeight: 'bold', color: '#fff'},
   actions: {

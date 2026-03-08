@@ -26,13 +26,16 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
   const [selectedUser, setSelectedUser] = useState<UserResult | null>(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [currency, setCurrency] = useState<'VES' | 'USDT'>('VES');
   const [loading, setLoading] = useState(false);
 
   const {data: balanceData} = useQuery({
     queryKey: ['wallet', 'balance'],
     queryFn: () => walletApi.getBalance().then(r => r.data),
   });
-  const balance = parseFloat(balanceData?.balance ?? '0');
+  const balanceVes = parseFloat(balanceData?.balanceVes ?? '0');
+  const balanceUsdt = parseFloat(balanceData?.balanceUsdt ?? '0');
+  const balance = currency === 'VES' ? balanceVes : balanceUsdt;
 
   const {data: searchData} = useQuery({
     queryKey: ['transfer', 'search', query],
@@ -58,10 +61,15 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
     }
     setLoading(true);
     try {
-      await transferApi.p2p(selectedUser.id, amountNum, note || undefined);
-      Alert.alert('Éxito', 'Transferencia enviada correctamente', () =>
-        navigation.goBack(),
+      await transferApi.p2p(
+        selectedUser.id,
+        amountNum,
+        note || undefined,
+        currency,
       );
+      Alert.alert('Éxito', 'Transferencia enviada correctamente', [
+        {text: 'OK', onPress: () => navigation.goBack()},
+      ]);
     } catch (e: any) {
       const msg =
         e.response?.data?.message || e.message || 'Error al transferir';
@@ -118,7 +126,37 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
             </TouchableOpacity>
           </View>
         )}
-        <Text style={styles.label}>Monto (USDT)</Text>
+        <View style={styles.currencyRow}>
+          <TouchableOpacity
+            style={[
+              styles.currencyBtn,
+              currency === 'VES' && styles.currencyBtnActive,
+            ]}
+            onPress={() => setCurrency('VES')}>
+            <Text
+              style={[
+                styles.currencyText,
+                currency === 'VES' && styles.currencyTextActive,
+              ]}>
+              VES
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.currencyBtn,
+              currency === 'USDT' && styles.currencyBtnActive,
+            ]}
+            onPress={() => setCurrency('USDT')}>
+            <Text
+              style={[
+                styles.currencyText,
+                currency === 'USDT' && styles.currencyTextActive,
+              ]}>
+              USDT
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.label}>Monto ({currency})</Text>
         <TextInput
           style={styles.input}
           placeholder="0.00"
@@ -127,7 +165,9 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
           keyboardType="decimal-pad"
           editable={!loading}
         />
-        <Text style={styles.balanceText}>Saldo: {balance.toFixed(2)} USDT</Text>
+        <Text style={styles.balanceText}>
+          Saldo: {currency === 'VES' ? balance.toLocaleString('es-VE') : balance.toFixed(2)} {currency}
+        </Text>
         <Text style={styles.label}>Nota (opcional)</Text>
         <TextInput
           style={styles.input}
@@ -183,6 +223,17 @@ const styles = StyleSheet.create({
   changeBtn: {marginTop: 8},
   changeBtnText: {color: '#0066CC', fontSize: 14},
   balanceText: {fontSize: 12, color: '#666', marginBottom: 16},
+  currencyRow: {flexDirection: 'row', gap: 12, marginBottom: 16},
+  currencyBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  currencyBtnActive: {backgroundColor: '#0066CC', borderColor: '#0066CC'},
+  currencyText: {fontSize: 14, fontWeight: '600', color: '#666'},
+  currencyTextActive: {color: '#fff'},
   button: {
     backgroundColor: '#0066CC',
     padding: 16,

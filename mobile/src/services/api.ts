@@ -63,7 +63,12 @@ export const userApi = {
 // Wallet
 export const walletApi = {
   getBalance: () =>
-    api.get<{balance: string; currency: string}>('/wallet/balance'),
+    api.get<{
+      balanceVes: string;
+      balanceUsdt: string;
+      balance: string;
+      currency: string;
+    }>('/wallet/balance'),
   getTransactions: (params?: {page?: number; limit?: number; type?: string}) =>
     api.get<{
       items: TransactionItem[];
@@ -74,11 +79,115 @@ export const walletApi = {
   getTransaction: (id: string) => api.get(`/wallet/transactions/${id}`),
 };
 
+// Deposit (VES)
+export const depositApi = {
+  create: (amount: number) =>
+    api.post<{id: string; amount: number; reference: string; status: string; instructions: string}>(
+      '/deposit',
+      {amount},
+    ),
+  list: (params?: {page?: number; limit?: number}) =>
+    api.get<{
+      items: {id: string; amount: string; reference: string; status: string; createdAt: string}[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/deposit', {params}),
+};
+
+// Conversion
+export const conversionApi = {
+  getRate: () => api.get<{rate: number}>('/conversion/rate'),
+  vesToUsdt: (amount: number) =>
+    api.post<{amountVes: number; usdtReceived: number; fee: number; rate: number}>(
+      '/conversion/ves-to-usdt',
+      {amount},
+    ),
+  usdtToVes: (amount: number) =>
+    api.post<{amountUsdt: number; vesReceived: number; fee: number; rate: number}>(
+      '/conversion/usdt-to-ves',
+      {amount},
+    ),
+};
+
+// Limits
+export const limitsApi = {
+  get: () =>
+    api.get<{
+      dailyLimit: number;
+      dailyUsed: number;
+      dailyRemaining: number;
+      monthlyLimit: number;
+      monthlyUsed: number;
+      monthlyRemaining: number;
+    }>('/limits'),
+};
+
+// Bank accounts (USA)
+export const bankAccountApi = {
+  list: () =>
+    api.get<
+      {id: string; accountHolder: string; lastFour: string; accountType: string; bankName?: string; status: string}[]
+    >('/bank-accounts'),
+  create: (data: {
+    accountHolder: string;
+    accountNumber: string;
+    routingNumber: string;
+    accountType: string;
+    bankName?: string;
+  }) => api.post('/bank-accounts', data),
+  delete: (id: string) => api.delete(`/bank-accounts/${id}`),
+};
+
+// Withdrawal USA
+export const withdrawalUsaApi = {
+  create: (data: {bankAccountId: string; amountUsdt: number; note?: string}) =>
+    api.post<{
+      id: string;
+      status: string;
+      amountUsdt: number;
+      usdAmount: number;
+      fee: number;
+      etaMinutes: number;
+      estimatedCompletion: string;
+    }>('/withdrawal/usa', data),
+  list: (params?: {page?: number; limit?: number}) =>
+    api.get<{
+      items: {
+        id: string;
+        amount: string;
+        usdAmount?: string;
+        fee?: string;
+        status: string;
+        etaMinutes?: number;
+        lastFour?: string;
+        accountHolder?: string;
+        createdAt: string;
+      }[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/withdrawal/usa', {params}),
+  getOne: (id: string) => api.get(`/withdrawal/usa/${id}`),
+};
+
+// Withdrawal (retiros Zelle)
+export const withdrawalApi = {
+  list: (params?: {page?: number; limit?: number}) =>
+    api.get<{
+      items: {id: string; amount: string; status: string; destinationEmail?: string; createdAt: string}[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/withdrawal', {params}),
+};
+
 export interface TransactionItem {
   id: string;
   type: string;
   amount: string;
   fee: string;
+  currency?: string;
   status: string;
   recipientId?: string;
   merchantId?: string;
@@ -98,16 +207,24 @@ export const zelleApi = {
       expiresAt: string;
     }>('/zelle/request-deposit', {amount, zelleEmail}),
   sendToZelle: (amount: number, zelleEmail: string, note?: string) =>
-    api.post<{status: string; amount: number; zelleEmail: string; id: string}>(
-      '/zelle/send',
-      {amount, zelleEmail, note},
-    ),
+    api.post<{
+      status: string;
+      amount: number;
+      zelleEmail: string;
+      id: string;
+      withdrawalId?: string;
+    }>('/zelle/send', {amount, zelleEmail, recipientName, note}),
 };
 
 // Transfer P2P
 export const transferApi = {
-  p2p: (recipientId: string, amount: number, note?: string) =>
-    api.post('/transfer/p2p', {recipientId, amount, note}),
+  p2p: (
+    recipientId: string,
+    amount: number,
+    note?: string,
+    currency?: 'USDT' | 'VES',
+  ) =>
+    api.post('/transfer/p2p', {recipientId, amount, note, currency}),
   searchUser: (query: string) =>
     api.get<{users: {id: string; firstName: string; lastName: string; email: string}[]}>(
       '/transfer/search-user',

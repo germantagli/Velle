@@ -13,13 +13,17 @@ import {useNavigation} from '@react-navigation/native';
 import {walletApi, TransactionItem} from '../../services/api';
 
 const TYPE_LABELS: Record<string, string> = {
-  P2P: 'Transferencia P2P',
+  P2P: 'Transferencia P2P (USDT)',
+  P2P_VES: 'Transferencia P2P (VES)',
   ZELLE_IN: 'Depósito Zelle',
   ZELLE_OUT: 'Envío Zelle',
   MERCHANT_PAY: 'Pago comercio',
   CARD_PAYMENT: 'Pago tarjeta',
   VES_DEPOSIT: 'Depósito VES',
   WITHDRAWAL: 'Retiro',
+  USA_BANK_WITHDRAWAL: 'Retiro USA',
+  CONVERSION_VES_TO_USDT: 'Conversión VES → USDT',
+  CONVERSION_USDT_TO_VES: 'Conversión USDT → VES',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -47,9 +51,13 @@ export default function HistoryScreen(): React.JSX.Element {
     const isIncoming =
       item.type === 'ZELLE_IN' ||
       item.type === 'VES_DEPOSIT' ||
-      (item.type === 'P2P' && item.metadata?.direction === 'in');
+      (item.type === 'P2P' && item.metadata?.direction === 'in') ||
+      (item.type === 'P2P_VES' && item.metadata?.direction === 'in') ||
+      item.type === 'CONVERSION_USDT_TO_VES';
+    const isConversion = item.type.startsWith('CONVERSION');
     const amount = parseFloat(item.amount);
-    const sign = isIncoming ? '+' : '-';
+    const sign = isConversion ? '' : isIncoming ? '+' : '-';
+    const currency = item.currency ?? 'USDT';
 
     return (
       <TouchableOpacity
@@ -74,9 +82,20 @@ export default function HistoryScreen(): React.JSX.Element {
           <Text
             style={[
               styles.itemAmount,
-              {color: isIncoming ? '#22c55e' : '#1a1a2e'},
+              {
+                color: isConversion
+                  ? '#0d9488'
+                  : isIncoming
+                    ? '#22c55e'
+                    : '#1a1a2e',
+              },
             ]}>
-            {sign} {amount.toFixed(2)} USDT
+            {sign}{' '}
+            {amount.toLocaleString('es-VE', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 6,
+            })}{' '}
+            {currency}
           </Text>
           <View
             style={[

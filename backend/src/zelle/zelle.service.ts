@@ -29,24 +29,35 @@ export class ZelleService {
     userId: string,
     amount: number,
     zelleEmail: string,
+    recipientName?: string,
     note?: string,
   ) {
     if (amount <= 0) throw new BadRequestException('Monto inválido');
     const fee = amount * (ZELLE_FEE_PERCENT / 100);
     const total = amount + fee;
 
-    const tx = await this.prisma.$transaction(async txPrisma => {
+    const result = await this.prisma.$transaction(async txPrisma => {
       const wallet = await txPrisma.wallet.findUnique({
         where: {userId},
       });
       if (!wallet) throw new BadRequestException('Wallet no encontrada');
-      const bal = new Decimal(wallet.balance);
+      const bal = new Decimal(wallet.balanceUsdt);
       if (bal.lt(total))
         throw new BadRequestException('Saldo insuficiente');
 
       await txPrisma.wallet.update({
         where: {userId},
-        data: {balance: bal.minus(total)},
+        data: {balanceUsdt: bal.minus(total)},
+      });
+      const withdrawal = await txPrisma.withdrawal.create({
+        data: {
+          userId,
+          amount: total,
+          destination: 'zelle',
+          destinationEmail: zelleEmail,
+          destinationName: recipientName,
+          status: 'PENDING',
+        },
       });
       const transaction = await txPrisma.transaction.create({
         data: {
@@ -54,15 +65,17 @@ export class ZelleService {
           type: 'ZELLE_OUT',
           amount: total,
           fee,
+          currency: 'USDT',
           status: 'COMPLETED',
-          metadata: {zelleEmail, note},
+          metadata: {zelleEmail, recipientName, note, withdrawalId: withdrawal.id},
         },
       });
-      return transaction;
+      return {transaction, withdrawal};
     });
 
     return {
-      id: tx.id,
+      id: result.transaction.id,
+      withdrawalId: result.withdrawal.id,
       status: 'completed',
       amount,
       zelleEmail,
