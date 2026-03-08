@@ -1,5 +1,5 @@
 import {Module} from '@nestjs/common';
-import {ConfigModule} from '@nestjs/config';
+import {ConfigModule as NestConfigModule} from '@nestjs/config';
 import {APP_GUARD} from '@nestjs/core';
 import {ThrottlerModule, ThrottlerGuard} from '@nestjs/throttler';
 import {PrismaModule} from './prisma/prisma.module';
@@ -14,7 +14,7 @@ import {CardsModule} from './cards/cards.module';
 import {DepositModule} from './deposit/deposit.module';
 import {ConversionModule} from './conversion/conversion.module';
 import {WithdrawalModule} from './withdrawal/withdrawal.module';
-import {ConfigModule} from './config/config.module';
+import {ConfigModule as SystemConfigModule} from './config/config.module';
 import {LimitsModule} from './limits/limits.module';
 import {BankAccountModule} from './bank-account/bank-account.module';
 import {DwollaModule} from './dwolla/dwolla.module';
@@ -25,7 +25,7 @@ import {AppController} from './app.controller';
 @Module({
   controllers: [AppController],
   imports: [
-    ConfigModule.forRoot({isGlobal: true}),
+    NestConfigModule.forRoot({isGlobal: true}),
     ThrottlerModule.forRoot([{ttl: 60000, limit: 100}]),
     PrismaModule,
     AuthModule,
@@ -39,7 +39,7 @@ import {AppController} from './app.controller';
     DepositModule,
     ConversionModule,
     WithdrawalModule,
-    ConfigModule,
+    SystemConfigModule,
     LimitsModule,
     BankAccountModule,
     DwollaModule,

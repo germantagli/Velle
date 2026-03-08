@@ -14,18 +14,18 @@ import {DwollaService} from '../dwolla/dwolla.service';
 export class WebhooksController {
   constructor(
     private withdrawalUsa: WithdrawalUsaService,
-    private dwolla: DwollaService,
+    private dwollaService: DwollaService,
   ) {}
 
   @Post('dwolla')
-  async dwolla(
+  async handleDwolla(
     @Req() req: Request,
     @Headers('x-request-signature-sha256') signature: string,
     @Body() body: {topic?: string; resourceId?: string},
   ) {
-    if (this.dwolla.isConfigured() && signature) {
+    if (this.dwollaService.isConfigured() && signature) {
       const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-      if (!this.dwolla.verifyWebhookSignature(raw, signature)) {
+      if (!this.dwollaService.verifyWebhookSignature(raw, signature)) {
         throw new UnauthorizedException('Invalid webhook signature');
       }
     }
