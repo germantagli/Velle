@@ -52,17 +52,7 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(
-    @Body()
-    body: {
-      contact: string;
-      email?: string;
-      phone?: string;
-      password: string;
-      firstName: string;
-      lastName: string;
-    },
-  ) {
+  async register(@Body() body: {contact: string}) {
     return this.auth.register(body);
   }
 
@@ -109,11 +99,11 @@ export class AuthController {
   @Post('change-password')
   async changePassword(
     @CurrentUser() user: {id: string},
-    @Body() body: {currentPassword: string; newPassword: string},
+    @Body() body: {currentPassword?: string; newPassword: string},
   ) {
     return this.auth.changePassword(
       user.id,
-      body.currentPassword,
+      body.currentPassword ?? null,
       body.newPassword,
     );
   }

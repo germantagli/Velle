@@ -11,30 +11,43 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import {useAuthStore} from '../../store/authStore';
 import {authApi} from '../../services/api';
 
 export default function SecurityScreen({navigation}: any): React.JSX.Element {
+  const user = useAuthStore(s => s.user);
+  const setAuth = useAuthStore(s => s.setAuth);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const needsInitialPassword = user && (user as any).passwordSet === false;
+
   const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) {
       Alert.alert('Error', 'Completa todos los campos');
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'La nueva contraseña debe tener al menos 6 caracteres');
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
       return;
     }
     if (newPassword !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
+    if (!needsInitialPassword && !currentPassword) {
+      Alert.alert('Error', 'Ingresa tu contraseña actual');
+      return;
+    }
     setLoading(true);
     try {
-      await authApi.changePassword(currentPassword, newPassword);
+      await authApi.changePassword(
+        needsInitialPassword ? undefined : currentPassword,
+        newPassword,
+      );
+      if (user) setAuth({user: {...user, passwordSet: true} as any});
       Alert.alert('Éxito', 'Contraseña actualizada', [
         {text: 'OK', onPress: () => navigation.goBack()},
       ]);
@@ -52,17 +65,25 @@ export default function SecurityScreen({navigation}: any): React.JSX.Element {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Cambiar contraseña</Text>
-        <Text style={styles.label}>Contraseña actual</Text>
-        <TextInput
-          style={styles.input}
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          placeholder="Tu contraseña actual"
-          secureTextEntry
-          editable={!loading}
-        />
-        <Text style={styles.label}>Nueva contraseña</Text>
+        <Text style={styles.sectionTitle}>
+          {needsInitialPassword ? 'Definir contraseña' : 'Cambiar contraseña'}
+        </Text>
+        {!needsInitialPassword && (
+          <>
+            <Text style={styles.label}>Contraseña actual</Text>
+            <TextInput
+              style={styles.input}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="Tu contraseña actual"
+              secureTextEntry
+              editable={!loading}
+            />
+          </>
+        )}
+        <Text style={styles.label}>
+          {needsInitialPassword ? 'Contraseña' : 'Nueva contraseña'}
+        </Text>
         <TextInput
           style={styles.input}
           value={newPassword}
@@ -71,12 +92,12 @@ export default function SecurityScreen({navigation}: any): React.JSX.Element {
           secureTextEntry
           editable={!loading}
         />
-        <Text style={styles.label}>Confirmar nueva contraseña</Text>
+        <Text style={styles.label}>Confirmar contraseña</Text>
         <TextInput
           style={styles.input}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
-          placeholder="Repite la nueva contraseña"
+          placeholder="Repite la contraseña"
           secureTextEntry
           editable={!loading}
         />

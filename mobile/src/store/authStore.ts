@@ -23,6 +23,7 @@ interface User {
   kycStatus: 'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED';
   mfaEnabled?: boolean;
   notificationsEnabled?: boolean;
+  passwordSet?: boolean;
 }
 
 export const useAuthStore = create<AuthState>()(

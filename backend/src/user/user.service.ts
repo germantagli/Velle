@@ -16,6 +16,7 @@ export class UserService {
         lastName: true,
         kycStatus: true,
         mfaEnabled: true,
+        passwordSet: true,
         notificationsEnabled: true,
         createdAt: true,
       },
@@ -33,7 +34,11 @@ export class UserService {
   ) {
     return this.prisma.user.update({
       where: {id: userId},
-      data,
+      data: {
+        ...(data.firstName !== undefined && {firstName: data.firstName}),
+        ...(data.lastName !== undefined && {lastName: data.lastName}),
+        ...(data.phone !== undefined && {phone: data.phone || null}),
+      },
     });
   }
 

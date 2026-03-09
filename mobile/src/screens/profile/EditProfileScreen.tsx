@@ -31,10 +31,6 @@ export default function EditProfileScreen({navigation}: any): React.JSX.Element 
   }, [user]);
 
   const handleSave = async () => {
-    if (!firstName.trim()) {
-      Alert.alert('Error', 'El nombre es obligatorio');
-      return;
-    }
     setLoading(true);
     try {
       const {data} = await userApi.updateProfile({

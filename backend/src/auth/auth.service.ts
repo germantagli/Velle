@@ -48,19 +48,13 @@ export class AuthService {
         lastName: true,
         kycStatus: true,
         mfaEnabled: true,
+        passwordSet: true,
       },
     });
     return user ?? null;
   }
 
-  async register(dto: {
-    contact: string;
-    email?: string;
-    phone?: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-  }) {
+  async register(dto: {contact: string}) {
     const normalized = this.normalizeContact(dto.contact);
     const isEmail = this.isEmail(dto.contact.trim());
     const vc = await this.prisma.verificationCode.findFirst({
@@ -70,10 +64,8 @@ export class AuthService {
       throw new BadRequestException('Verifica tu email o teléfono con el código OTP primero');
     if (new Date(vc.usedAt).getTime() < Date.now() - 15 * 60 * 1000)
       throw new BadRequestException('La verificación expiró. Solicita un nuevo código.');
-    const accountEmail = isEmail ? normalized : (dto.email || '').trim().toLowerCase();
-    const accountPhone = isEmail ? (dto.phone || null) : normalized;
-    if (!accountEmail)
-      throw new BadRequestException('Email requerido para la cuenta');
+    const accountEmail = isEmail ? normalized : `u_${Date.now()}${Math.random().toString(36).slice(2, 10)}@temp.velle`;
+    const accountPhone = isEmail ? null : normalized;
     const existingEmail = await this.prisma.user.findUnique({where: {email: accountEmail}});
     if (existingEmail) throw new ConflictException('El email ya está registrado');
     if (accountPhone) {
@@ -82,14 +74,15 @@ export class AuthService {
       });
       if (existingPhone) throw new ConflictException('El teléfono ya está registrado');
     }
-    const hash = await bcrypt.hash(dto.password, 12);
+    const placeholderHash = await bcrypt.hash(`no-password-${Date.now()}`, 12);
     const user = await this.prisma.user.create({
       data: {
         email: accountEmail,
         phone: accountPhone,
-        passwordHash: hash,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
+        passwordHash: placeholderHash,
+        firstName: '',
+        lastName: '',
+        passwordSet: false,
       },
     });
     await this.prisma.verificationCode.deleteMany({
@@ -98,12 +91,9 @@ export class AuthService {
     await this.prisma.wallet.create({
       data: {userId: user.id, balanceVes: 0, balanceUsdt: 0},
     });
-    return {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    };
+    const tokenData = await this.login(user);
+    const profile = await this.getProfile(user.id);
+    return {access_token: tokenData.access_token, expires_in: tokenData.expires_in, user: profile};
   }
 
   async setupMfa(userId: string) {
@@ -150,16 +140,24 @@ export class AuthService {
 
   async changePassword(
     userId: string,
-    currentPassword: string,
+    currentPassword: string | null,
     newPassword: string,
   ) {
     const user = await this.prisma.user.findUnique({where: {id: userId}});
-    if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash)))
-      throw new UnauthorizedException('Contraseña actual incorrecta');
+    if (!user) throw new UnauthorizedException('Usuario no encontrado');
+    if (newPassword.length < 6)
+      throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
+    const isFirstTime = !user.passwordSet;
+    if (!isFirstTime) {
+      if (!currentPassword)
+        throw new BadRequestException('Contraseña actual requerida');
+      if (!(await bcrypt.compare(currentPassword, user.passwordHash)))
+        throw new UnauthorizedException('Contraseña actual incorrecta');
+    }
     const hash = await bcrypt.hash(newPassword, 12);
     await this.prisma.user.update({
       where: {id: userId},
-      data: {passwordHash: hash},
+      data: {passwordHash: hash, passwordSet: true},
     });
     return {success: true};
   }

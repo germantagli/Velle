@@ -21,6 +21,7 @@ model User {
   kycStatus     KycStatus @default(PENDING) @map("kyc_status")
   mfaEnabled    Boolean  @default(false) @map("mfa_enabled")
   mfaSecret     String?  @map("mfa_secret")
+  passwordSet   Boolean  @default(true) @map("password_set")
   limitTierId           String?  @map("limit_tier_id")
   notificationsEnabled  Boolean  @default(false) @map("notifications_enabled")
   createdAt     DateTime @default(now()) @map("created_at")

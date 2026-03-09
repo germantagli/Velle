@@ -52,9 +52,9 @@ export const authApi = {
   setupMfa: () => api.get<{secret: string; qrCode: string}>('/auth/mfa/setup'),
   enableMfa: (code: string) => api.post('/auth/mfa/enable', {code}),
   disableMfa: (code: string) => api.post('/auth/mfa/disable', {code}),
-  changePassword: (currentPassword: string, newPassword: string) =>
+  changePassword: (currentPassword: string | undefined, newPassword: string) =>
     api.post('/auth/change-password', {
-      currentPassword,
+      ...(currentPassword && {currentPassword}),
       newPassword,
     }),
   forgotPassword: (email: string) =>
@@ -84,14 +84,11 @@ export const authApi = {
       '/auth/verify-otp-register',
       {contact, code},
     ),
-  registerWithOtp: (data: {
-    contact: string;
-    email?: string;
-    phone?: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-  }) => api.post('/auth/register', data),
+  register: (contact: string) =>
+    api.post<{access_token: string; expires_in: number; user: Record<string, unknown>}>(
+      '/auth/register',
+      {contact},
+    ),
 };
 
 // User
