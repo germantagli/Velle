@@ -10,10 +10,8 @@ interface AuthState {
   isAuthenticated: boolean;
   isKYCComplete: boolean;
   kycSkipped?: boolean;
-  skippedKycUserIds: string[];
   needsMFA?: boolean;
   setAuth: (auth: Partial<AuthState>) => void;
-  skipKyc: (userId: string) => void;
   logout: () => void;
 }
 
@@ -38,7 +36,6 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isKYCComplete: false,
       kycSkipped: false,
-      skippedKycUserIds: [],
       needsMFA: false,
       setAuth: auth =>
         set(state => {
@@ -54,16 +51,9 @@ export const useAuthStore = create<AuthState>()(
             isKYCComplete: auth.user ? isKYCComplete : state.isKYCComplete,
           };
         }),
-      skipKyc: userId =>
-        set(state => ({
-          skippedKycUserIds: state.skippedKycUserIds.includes(userId)
-            ? state.skippedKycUserIds
-            : [...state.skippedKycUserIds, userId],
-          kycSkipped: true,
-        })),
       logout: () => {
         clearStoredCredentials();
-        set(state => ({
+        set({
           token: null,
           refreshToken: null,
           user: null,
@@ -71,8 +61,7 @@ export const useAuthStore = create<AuthState>()(
           isKYCComplete: false,
           kycSkipped: false,
           needsMFA: false,
-          skippedKycUserIds: state.skippedKycUserIds,
-        }));
+        });
       },
     }),
     {
@@ -83,7 +72,6 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: s.refreshToken,
         user: s.user,
         kycSkipped: s.kycSkipped,
-        skippedKycUserIds: s.skippedKycUserIds,
       }),
     },
   ),

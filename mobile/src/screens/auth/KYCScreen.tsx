@@ -12,6 +12,7 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useAuthStore} from '../../store/authStore';
+import {useKycSkipStore} from '../../store/kycSkipStore';
 import {kycApi} from '../../services/api';
 
 const DOC_TYPES = [
@@ -141,7 +142,7 @@ export default function KYCScreen(): React.JSX.Element {
           style={[styles.buttonSecondary, loading && styles.buttonDisabled]}
           onPress={() => {
             const user = useAuthStore.getState().user;
-            if (user?.id) useAuthStore.getState().skipKyc(user.id);
+            if (user?.id) useKycSkipStore.getState().skipKyc(user.id);
             navigation.replace('Main');
           }}
           disabled={loading}

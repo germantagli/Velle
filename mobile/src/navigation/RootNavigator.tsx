@@ -1,6 +1,7 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuthStore} from '../store/authStore';
+import {useKycSkipStore} from '../store/kycSkipStore';
 
 // Screens - Auth
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -50,10 +51,9 @@ export function RootNavigator(): React.JSX.Element {
   const needsMFA = useAuthStore(s => s.needsMFA ?? false);
   const user = useAuthStore(s => s.user);
 
-  const skippedKycUserIds = useAuthStore(s => s.skippedKycUserIds ?? []);
-  const hasSkippedKyc = user?.id
-    ? skippedKycUserIds.includes(user.id)
-    : false;
+  const hasSkippedKyc = useKycSkipStore(s =>
+    user?.id ? s.hasSkipped(user.id) : false,
+  );
   const showKYCFirst =
     !isKYCComplete &&
     !hasSkippedKyc &&
