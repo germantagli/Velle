@@ -44,11 +44,25 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator(): React.JSX.Element {
-  const {isAuthenticated, isKYCComplete, needsMFA = false} = useAuthStore();
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const isKYCComplete = useAuthStore(s => s.isKYCComplete);
+  const kycSkipped = useAuthStore(s => s.kycSkipped ?? false);
+  const needsMFA = useAuthStore(s => s.needsMFA ?? false);
   const user = useAuthStore(s => s.user);
+
+  const skippedKycUserIds = useAuthStore(s => s.skippedKycUserIds ?? []);
+  const hasSkippedKyc = user?.id
+    ? skippedKycUserIds.includes(user.id)
+    : false;
+  const showKYCFirst =
+    !isKYCComplete &&
+    !hasSkippedKyc &&
+    user?.kycStatus !== 'UNDER_REVIEW';
+  const initialRoute = showKYCFirst ? 'KYC' : 'Main';
 
   return (
     <Stack.Navigator
+      initialRouteName={initialRoute}
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
@@ -61,10 +75,13 @@ export function RootNavigator(): React.JSX.Element {
         </>
       ) : needsMFA ? (
         <Stack.Screen name="MFA" component={MFAScreen} />
-      ) : !isKYCComplete && user?.kycStatus !== 'UNDER_REVIEW' ? (
-        <Stack.Screen name="KYC" component={KYCScreen} />
       ) : (
         <>
+          <Stack.Screen
+            name="KYC"
+            component={KYCScreen}
+            options={{headerShown: true, title: 'Verificación KYC'}}
+          />
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
             name="Deposit"
