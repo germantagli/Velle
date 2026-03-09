@@ -16,8 +16,14 @@ export class AuthService {
     private jwt: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({where: {email}});
+  async validateUser(contact: string, password: string) {
+    const normalized = this.normalizeContact(contact);
+    const isEmail = this.isEmail(contact.trim());
+    const user = isEmail
+      ? await this.prisma.user.findUnique({where: {email: normalized}})
+      : await this.prisma.user.findFirst({
+          where: {phone: {contains: normalized}},
+        });
     if (!user || !(await bcrypt.compare(password, user.passwordHash)))
       return null;
     return user;
@@ -48,26 +54,46 @@ export class AuthService {
   }
 
   async register(dto: {
-    email: string;
+    contact: string;
+    email?: string;
+    phone?: string;
     password: string;
     firstName: string;
     lastName: string;
-    phone?: string;
   }) {
-    const existing = await this.prisma.user.findUnique({
-      where: {email: dto.email},
+    const normalized = this.normalizeContact(dto.contact);
+    const isEmail = this.isEmail(dto.contact.trim());
+    const vc = await this.prisma.verificationCode.findFirst({
+      where: {contact: normalized, purpose: 'REGISTER'},
     });
-    if (existing)
-      throw new ConflictException('El email ya está registrado');
+    if (!vc || !vc.usedAt)
+      throw new BadRequestException('Verifica tu email o teléfono con el código OTP primero');
+    if (new Date(vc.usedAt).getTime() < Date.now() - 15 * 60 * 1000)
+      throw new BadRequestException('La verificación expiró. Solicita un nuevo código.');
+    const accountEmail = isEmail ? normalized : (dto.email || '').trim().toLowerCase();
+    const accountPhone = isEmail ? (dto.phone || null) : normalized;
+    if (!accountEmail)
+      throw new BadRequestException('Email requerido para la cuenta');
+    const existingEmail = await this.prisma.user.findUnique({where: {email: accountEmail}});
+    if (existingEmail) throw new ConflictException('El email ya está registrado');
+    if (accountPhone) {
+      const existingPhone = await this.prisma.user.findFirst({
+        where: {phone: {contains: accountPhone}},
+      });
+      if (existingPhone) throw new ConflictException('El teléfono ya está registrado');
+    }
     const hash = await bcrypt.hash(dto.password, 12);
     const user = await this.prisma.user.create({
       data: {
-        email: dto.email,
+        email: accountEmail,
+        phone: accountPhone,
         passwordHash: hash,
         firstName: dto.firstName,
         lastName: dto.lastName,
-        phone: dto.phone,
       },
+    });
+    await this.prisma.verificationCode.deleteMany({
+      where: {contact: normalized, purpose: 'REGISTER'},
     });
     await this.prisma.wallet.create({
       data: {userId: user.id, balanceVes: 0, balanceUsdt: 0},
@@ -154,6 +180,93 @@ export class AuthService {
       email: user.email,
       devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
     };
+  }
+
+  private isEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  }
+
+  private normalizeContact(contact: string): string {
+    const t = contact.trim().toLowerCase();
+    if (this.isEmail(t)) return t;
+    return t.replace(/\D/g, '').replace(/^58/, '') || t;
+  }
+
+  async sendOtp(contact: string, purpose: 'REGISTER' | 'LOGIN') {
+    const normalized = this.normalizeContact(contact);
+    const isEmail = this.isEmail(contact.trim());
+    if (purpose === 'REGISTER') {
+      if (isEmail) {
+        const existing = await this.prisma.user.findUnique({
+          where: {email: normalized},
+        });
+        if (existing)
+          throw new ConflictException('El email ya está registrado');
+      } else {
+        const existing = await this.prisma.user.findFirst({
+          where: {phone: {contains: normalized}},
+        });
+        if (existing)
+          throw new ConflictException('El teléfono ya está registrado');
+      }
+    } else {
+      const user = isEmail
+        ? await this.prisma.user.findUnique({where: {email: normalized}})
+        : await this.prisma.user.findFirst({
+            where: {phone: {contains: normalized}},
+          });
+      if (!user)
+        throw new BadRequestException('No existe cuenta con ese email o teléfono');
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await this.prisma.verificationCode.deleteMany({
+      where: {contact: normalized, purpose},
+    });
+    await this.prisma.verificationCode.create({
+      data: {contact: normalized, code, purpose, expiresAt},
+    });
+    const devCode = process.env.NODE_ENV !== 'production' ? code : undefined;
+    return {
+      message: 'Código enviado. Revisa tu ' + (isEmail ? 'email' : 'SMS') + '.',
+      devCode,
+    };
+  }
+
+  async verifyOtpLogin(contact: string, code: string) {
+    const normalized = this.normalizeContact(contact);
+    const isEmail = this.isEmail(contact.trim());
+    const user = isEmail
+      ? await this.prisma.user.findUnique({where: {email: normalized}})
+      : await this.prisma.user.findFirst({
+          where: {phone: {contains: normalized}},
+        });
+    if (!user) throw new BadRequestException('Contacto no encontrado');
+    const vc = await this.prisma.verificationCode.findFirst({
+      where: {contact: normalized, code, purpose: 'LOGIN'},
+    });
+    if (!vc) throw new BadRequestException('Código inválido');
+    if (new Date() > vc.expiresAt)
+      throw new BadRequestException('El código ha expirado');
+    await this.prisma.verificationCode.delete({where: {id: vc.id}});
+    const tokenData = await this.login(user);
+    const profile = await this.getProfile(user.id);
+    return {access_token: tokenData.access_token, expires_in: tokenData.expires_in, user: profile};
+  }
+
+  async verifyOtpRegister(contact: string, code: string) {
+    const normalized = this.normalizeContact(contact);
+    const vc = await this.prisma.verificationCode.findFirst({
+      where: {contact: normalized, code, purpose: 'REGISTER'},
+    });
+    if (!vc) throw new BadRequestException('Código inválido');
+    if (new Date() > vc.expiresAt)
+      throw new BadRequestException('El código ha expirado');
+    await this.prisma.verificationCode.update({
+      where: {id: vc.id},
+      data: {usedAt: new Date()},
+    });
+    return {verified: true, contact: normalized};
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {

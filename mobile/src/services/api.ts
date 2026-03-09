@@ -36,9 +36,9 @@ api.interceptors.response.use(
 
 // Auth
 export const authApi = {
-  login: (email: string, password: string) =>
+  login: (contact: string, password: string) =>
     api.post<{access_token: string; expires_in: number}>('/auth/login', {
-      email,
+      contact,
       password,
     }),
   register: (data: {
@@ -68,6 +68,30 @@ export const authApi = {
       code,
       newPassword,
     }),
+  sendOtp: (contact: string, purpose: 'REGISTER' | 'LOGIN') =>
+    api.post<{message: string; devCode?: string}>('/auth/send-otp', {
+      contact,
+      purpose,
+    }),
+  verifyOtpLogin: (contact: string, code: string) =>
+    api.post<{
+      access_token: string;
+      expires_in: number;
+      user: Record<string, unknown>;
+    }>('/auth/verify-otp-login', {contact, code}),
+  verifyOtpRegister: (contact: string, code: string) =>
+    api.post<{verified: boolean; contact: string}>(
+      '/auth/verify-otp-register',
+      {contact, code},
+    ),
+  registerWithOtp: (data: {
+    contact: string;
+    email?: string;
+    phone?: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) => api.post('/auth/register', data),
 };
 
 // User

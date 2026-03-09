@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {clearStoredCredentials} from '../services/biometric';
 
 interface AuthState {
   token: string | null;
@@ -47,7 +48,8 @@ export const useAuthStore = create<AuthState>()(
             isKYCComplete: auth.user ? isKYCComplete : state.isKYCComplete,
           };
         }),
-      logout: () =>
+      logout: () => {
+        clearStoredCredentials();
         set({
           token: null,
           refreshToken: null,
@@ -55,7 +57,8 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isKYCComplete: false,
           needsMFA: false,
-        }),
+        });
+      },
     }),
     {
       name: 'velle-auth',

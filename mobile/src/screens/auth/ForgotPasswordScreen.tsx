@@ -58,9 +58,9 @@ export default function ForgotPasswordScreen({
     setLoading(true);
     try {
       await authApi.resetPassword(email.trim(), code.trim(), newPassword);
-      Alert.alert('Listo', 'Contraseña actualizada. Ya puedes iniciar sesión.', () => {
-        navigation.replace('Login');
-      });
+      Alert.alert('Listo', 'Contraseña actualizada. Ya puedes iniciar sesión.', [
+        {text: 'OK', onPress: () => navigation.replace('Login')},
+      ]);
     } catch (err: any) {
       Alert.alert(
         'Error',

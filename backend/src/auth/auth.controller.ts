@@ -18,8 +18,9 @@ export class AuthController {
   constructor(private auth: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: {email: string; password: string}) {
-    const user = await this.auth.validateUser(body.email, body.password);
+  async login(@Body() body: {email?: string; contact?: string; password: string}) {
+    const contact = body.contact || body.email || '';
+    const user = await this.auth.validateUser(contact, body.password);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
     const tokenData = await this.auth.login(user);
     const profile = await this.auth.getProfile(user.id);
@@ -29,15 +30,37 @@ export class AuthController {
     };
   }
 
+  @Post('send-otp')
+  async sendOtp(
+    @Body() body: {contact: string; purpose: 'REGISTER' | 'LOGIN'},
+  ) {
+    return this.auth.sendOtp(body.contact, body.purpose);
+  }
+
+  @Post('verify-otp-login')
+  async verifyOtpLogin(
+    @Body() body: {contact: string; code: string},
+  ) {
+    return this.auth.verifyOtpLogin(body.contact, body.code);
+  }
+
+  @Post('verify-otp-register')
+  async verifyOtpRegister(
+    @Body() body: {contact: string; code: string},
+  ) {
+    return this.auth.verifyOtpRegister(body.contact, body.code);
+  }
+
   @Post('register')
   async register(
     @Body()
     body: {
-      email: string;
+      contact: string;
+      email?: string;
+      phone?: string;
       password: string;
       firstName: string;
       lastName: string;
-      phone?: string;
     },
   ) {
     return this.auth.register(body);
