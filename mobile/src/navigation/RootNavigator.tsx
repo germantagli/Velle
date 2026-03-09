@@ -20,6 +20,11 @@ import AddBankAccountScreen from '../screens/withdrawal/AddBankAccountScreen';
 import MerchantPayScreen from '../screens/merchant/MerchantPayScreen';
 import VirtualCardScreen from '../screens/cards/VirtualCardScreen';
 import TransactionDetailScreen from '../screens/transactions/TransactionDetailScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import SecurityScreen from '../screens/profile/SecurityScreen';
+import TwoFAScreen from '../screens/profile/TwoFAScreen';
+import NotificationsScreen from '../screens/profile/NotificationsScreen';
+import SupportScreen from '../screens/profile/SupportScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -37,6 +42,11 @@ export type RootStackParamList = {
   MerchantPay: {merchantId?: string};
   VirtualCard: undefined;
   TransactionDetail: {id: string};
+  EditProfile: undefined;
+  Security: undefined;
+  TwoFA: undefined;
+  Notifications: undefined;
+  Support: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -112,6 +122,31 @@ export function RootNavigator(): React.JSX.Element {
             name="TransactionDetail"
             component={TransactionDetailScreen}
             options={{headerShown: true, title: 'Detalle'}}
+          />
+          <Stack.Screen
+            name="EditProfile"
+            component={EditProfileScreen}
+            options={{headerShown: true, title: 'Editar perfil'}}
+          />
+          <Stack.Screen
+            name="Security"
+            component={SecurityScreen}
+            options={{headerShown: true, title: 'Seguridad'}}
+          />
+          <Stack.Screen
+            name="TwoFA"
+            component={TwoFAScreen}
+            options={{headerShown: true, title: '2FA'}}
+          />
+          <Stack.Screen
+            name="Notifications"
+            component={NotificationsScreen}
+            options={{headerShown: true, title: 'Notificaciones'}}
+          />
+          <Stack.Screen
+            name="Support"
+            component={SupportScreen}
+            options={{headerShown: true, title: 'Soporte'}}
           />
         </>
       )}

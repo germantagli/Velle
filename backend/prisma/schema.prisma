@@ -21,11 +21,13 @@ model User {
   kycStatus     KycStatus @default(PENDING) @map("kyc_status")
   mfaEnabled    Boolean  @default(false) @map("mfa_enabled")
   mfaSecret     String?  @map("mfa_secret")
-  limitTierId   String?  @map("limit_tier_id")
+  limitTierId           String?  @map("limit_tier_id")
+  notificationsEnabled  Boolean  @default(false) @map("notifications_enabled")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   wallet        Wallet?
+  deviceTokens  DeviceToken[]
   kycDocuments  KycDocument[]
   transactions  Transaction[]
   auditLogs     AuditLog[]
@@ -221,6 +223,18 @@ model Merchant {
   status        String   @default("active")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+}
+
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String
+  platform  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
 }
 
 model VirtualCard {

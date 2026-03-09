@@ -112,4 +112,29 @@ export class AuthService {
     });
     return {enabled: true};
   }
+
+  async disableMfa(userId: string, code: string) {
+    await this.verifyMfa(userId, code);
+    await this.prisma.user.update({
+      where: {id: userId},
+      data: {mfaEnabled: false, mfaSecret: null},
+    });
+    return {disabled: true};
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findUnique({where: {id: userId}});
+    if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash)))
+      throw new UnauthorizedException('Contraseña actual incorrecta');
+    const hash = await bcrypt.hash(newPassword, 12);
+    await this.prisma.user.update({
+      where: {id: userId},
+      data: {passwordHash: hash},
+    });
+    return {success: true};
+  }
 }

@@ -7,9 +7,11 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {useAuthStore} from '../../store/authStore';
 
 export default function ProfileScreen(): React.JSX.Element {
+  const navigation = useNavigation<any>();
   const {user, logout} = useAuthStore();
 
   const handleLogout = () => {
@@ -44,19 +46,33 @@ export default function ProfileScreen(): React.JSX.Element {
         </View>
       </View>
       <View style={styles.menu}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('EditProfile')}>
           <Text style={styles.menuText}>Editar perfil</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>Seguridad y 2FA</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Security')}>
+          <Text style={styles.menuText}>Seguridad</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('TwoFA')}>
+          <Text style={styles.menuText}>2FA (verificación en dos pasos)</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Notifications')}>
           <Text style={styles.menuText}>Notificaciones</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Support')}>
           <Text style={styles.menuText}>Soporte / Ayuda</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>

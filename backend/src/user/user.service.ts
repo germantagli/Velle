@@ -16,6 +16,7 @@ export class UserService {
         lastName: true,
         kycStatus: true,
         mfaEnabled: true,
+        notificationsEnabled: true,
         createdAt: true,
       },
     });
@@ -33,6 +34,13 @@ export class UserService {
     return this.prisma.user.update({
       where: {id: userId},
       data,
+    });
+  }
+
+  async setNotifications(userId: string, enabled: boolean) {
+    return this.prisma.user.update({
+      where: {id: userId},
+      data: {notificationsEnabled: enabled},
     });
   }
 }

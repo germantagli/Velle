@@ -23,4 +23,12 @@ export class UserController {
   ) {
     return this.user.updateProfile(user.id, body);
   }
+
+  @Patch('notifications')
+  async setNotifications(
+    @CurrentUser() user: {id: string},
+    @Body() body: {enabled: boolean},
+  ) {
+    return this.user.setNotifications(user.id, body.enabled);
+  }
 }

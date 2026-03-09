@@ -74,6 +74,28 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('mfa/disable')
+  async disableMfa(
+    @CurrentUser() user: {id: string},
+    @Body() body: {code: string},
+  ) {
+    return this.auth.disableMfa(user.id, body.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @CurrentUser() user: {id: string},
+    @Body() body: {currentPassword: string; newPassword: string},
+  ) {
+    return this.auth.changePassword(
+      user.id,
+      body.currentPassword,
+      body.newPassword,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('refresh')
   async refresh() {
     return {};

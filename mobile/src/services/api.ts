@@ -51,6 +51,12 @@ export const authApi = {
   verifyMfa: (code: string) => api.post('/auth/mfa/verify', {code}),
   setupMfa: () => api.get<{secret: string; qrCode: string}>('/auth/mfa/setup'),
   enableMfa: (code: string) => api.post('/auth/mfa/enable', {code}),
+  disableMfa: (code: string) => api.post('/auth/mfa/disable', {code}),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    }),
 };
 
 // User
@@ -58,6 +64,8 @@ export const userApi = {
   getProfile: () => api.get('/user/profile'),
   updateProfile: (data: Partial<{firstName: string; lastName: string; phone: string}>) =>
     api.patch('/user/profile', data),
+  setNotifications: (enabled: boolean) =>
+    api.patch('/user/notifications', {enabled}),
 };
 
 // Wallet

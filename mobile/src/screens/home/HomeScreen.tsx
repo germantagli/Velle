@@ -83,8 +83,8 @@ export default function HomeScreen(): React.JSX.Element {
           <Text style={styles.actionLabel}>Transferir</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => navigation.navigate('MerchantPay')}>
+          style={[styles.actionBtn, styles.disabled]}
+          disabled>
           <Text style={styles.actionEmoji}>🏪</Text>
           <Text style={styles.actionLabel}>Pagar comercio</Text>
         </TouchableOpacity>
@@ -96,8 +96,8 @@ export default function HomeScreen(): React.JSX.Element {
         </TouchableOpacity>
       </View>
       <TouchableOpacity
-        style={styles.cardBtn}
-        onPress={() => navigation.navigate('VirtualCard')}>
+        style={[styles.cardBtn, styles.disabled]}
+        disabled>
         <Text style={styles.cardBtnText}>💳 Ver tarjeta virtual</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
   },
   actionEmoji: {fontSize: 24, marginBottom: 8},
   actionLabel: {fontSize: 13, fontWeight: '600', color: '#333'},
+  disabled: {opacity: 0.5},
   cardBtn: {
     backgroundColor: '#fff',
     borderRadius: 12,

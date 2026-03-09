@@ -20,8 +20,8 @@ export default function TransferHubScreen(): React.JSX.Element {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('MerchantPay')}>
+        style={[styles.card, styles.disabled]}
+        disabled>
         <Text style={styles.cardEmoji}>🏪</Text>
         <Text style={styles.cardTitle}>Pagar en comercio</Text>
         <Text style={styles.cardDesc}>
@@ -29,8 +29,8 @@ export default function TransferHubScreen(): React.JSX.Element {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('VirtualCard')}>
+        style={[styles.card, styles.disabled]}
+        disabled>
         <Text style={styles.cardEmoji}>💳</Text>
         <Text style={styles.cardTitle}>Tarjeta virtual</Text>
         <Text style={styles.cardDesc}>
@@ -58,4 +58,5 @@ const styles = StyleSheet.create({
   cardEmoji: {fontSize: 32, marginBottom: 12},
   cardTitle: {fontSize: 18, fontWeight: 'bold', color: '#1a1a2e'},
   cardDesc: {fontSize: 14, color: '#666', marginTop: 8},
+  disabled: {opacity: 0.5},
 });
