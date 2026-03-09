@@ -12,7 +12,7 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useAuthStore} from '../../store/authStore';
-import {useKycSkipStore} from '../../store/kycSkipStore';
+import {userApi} from '../../services/api';
 import {kycApi} from '../../services/api';
 
 const DOC_TYPES = [
@@ -140,10 +140,21 @@ export default function KYCScreen(): React.JSX.Element {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.buttonSecondary, loading && styles.buttonDisabled]}
-          onPress={() => {
-            const user = useAuthStore.getState().user;
-            if (user?.id) useKycSkipStore.getState().skipKyc(user.id);
-            navigation.replace('Main');
+          onPress={async () => {
+            setLoading(true);
+            try {
+              await userApi.skipKyc();
+              const user = useAuthStore.getState().user;
+              if (user)
+                useAuthStore.getState().setAuth({
+                  user: {...user, kycSkipped: true},
+                });
+              navigation.replace('Main');
+            } catch {
+              Alert.alert('Error', 'No se pudo omitir. Intenta de nuevo.');
+            } finally {
+              setLoading(false);
+            }
           }}
           disabled={loading}
           activeOpacity={0.7}>

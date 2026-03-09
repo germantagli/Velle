@@ -47,6 +47,7 @@ export class AuthService {
         firstName: true,
         lastName: true,
         kycStatus: true,
+        kycSkipped: true,
         mfaEnabled: true,
         passwordSet: true,
       },

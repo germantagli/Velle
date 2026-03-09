@@ -22,6 +22,7 @@ interface User {
   firstName: string;
   lastName: string;
   kycStatus: 'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED';
+  kycSkipped?: boolean;
   mfaEnabled?: boolean;
   notificationsEnabled?: boolean;
   passwordSet?: boolean;

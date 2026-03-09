@@ -93,6 +93,7 @@ export const authApi = {
 
 // User
 export const userApi = {
+  skipKyc: () => api.post('/user/skip-kyc'),
   getProfile: () => api.get('/user/profile'),
   updateProfile: (data: Partial<{firstName: string; lastName: string; phone: string}>) =>
     api.patch('/user/profile', data),

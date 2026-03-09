@@ -15,6 +15,7 @@ export class UserService {
         firstName: true,
         lastName: true,
         kycStatus: true,
+        kycSkipped: true,
         mfaEnabled: true,
         passwordSet: true,
         notificationsEnabled: true,
@@ -40,6 +41,14 @@ export class UserService {
         ...(data.phone !== undefined && {phone: data.phone || null}),
       },
     });
+  }
+
+  async skipKyc(userId: string) {
+    await this.prisma.user.update({
+      where: {id: userId},
+      data: {kycSkipped: true},
+    });
+    return {success: true};
   }
 
   async setNotifications(userId: string, enabled: boolean) {
