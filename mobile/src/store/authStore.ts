@@ -38,10 +38,12 @@ export const useAuthStore = create<AuthState>()(
           const kyc = auth.user?.kycStatus ?? state.user?.kycStatus;
           const isKYCComplete =
             kyc === 'verified' || kyc === 'UNDER_REVIEW' || kyc === 'under_review';
+          const isAuthenticated =
+            auth.token !== undefined ? !!auth.token : state.isAuthenticated;
           return {
             ...state,
             ...auth,
-            isAuthenticated: !!auth.token,
+            isAuthenticated,
             isKYCComplete: auth.user ? isKYCComplete : state.isKYCComplete,
           };
         }),

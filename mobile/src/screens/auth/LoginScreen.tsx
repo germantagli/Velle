@@ -92,6 +92,11 @@ export default function LoginScreen({navigation}: any): React.JSX.Element {
           )}
         </TouchableOpacity>
         <TouchableOpacity
+          onPress={() => navigation.navigate('ForgotPassword')}
+          disabled={loading}>
+          <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => navigation.navigate('Register')}
           disabled={loading}>
           <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>

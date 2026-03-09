@@ -95,6 +95,22 @@ export class AuthController {
     );
   }
 
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: {email: string}) {
+    return this.auth.forgotPassword(body.email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body() body: {email: string; code: string; newPassword: string},
+  ) {
+    return this.auth.resetPassword(
+      body.email,
+      body.code,
+      body.newPassword,
+    );
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('refresh')
   async refresh() {

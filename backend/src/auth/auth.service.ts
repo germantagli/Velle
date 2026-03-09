@@ -137,4 +137,48 @@ export class AuthService {
     });
     return {success: true};
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({where: {email: email.trim().toLowerCase()}});
+    if (!user) {
+      return {message: 'Si el email existe, recibirás un código de verificación.'};
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await this.prisma.passwordResetToken.deleteMany({where: {userId: user.id}});
+    await this.prisma.passwordResetToken.create({
+      data: {userId: user.id, code, expiresAt},
+    });
+    return {
+      message: 'Si el email existe, recibirás un código de verificación.',
+      email: user.email,
+      devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
+    };
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    if (newPassword.length < 6)
+      throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
+    const user = await this.prisma.user.findUnique({
+      where: {email: email.trim().toLowerCase()},
+    });
+    if (!user) throw new BadRequestException('Email o código inválido');
+    const token = await this.prisma.passwordResetToken.findFirst({
+      where: {userId: user.id, code},
+    });
+    if (!token) throw new BadRequestException('Código inválido o expirado');
+    if (new Date() > token.expiresAt) {
+      await this.prisma.passwordResetToken.delete({where: {id: token.id}});
+      throw new BadRequestException('El código ha expirado. Solicita uno nuevo.');
+    }
+    const hash = await bcrypt.hash(newPassword, 12);
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: {id: user.id},
+        data: {passwordHash: hash},
+      }),
+      this.prisma.passwordResetToken.delete({where: {id: token.id}}),
+    ]);
+    return {message: 'Contraseña actualizada correctamente'};
+  }
 }
