@@ -2,7 +2,7 @@ import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/home/HomeScreen';
 import TransferHubScreen from '../screens/transfer/TransferHubScreen';
-import ZelleHubScreen from '../screens/zelle/ZelleHubScreen';
+// import ZelleHubScreen from '../screens/zelle/ZelleHubScreen'; // Zelle comentado por ahora
 import HistoryScreen from '../screens/history/HistoryScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 
@@ -29,11 +29,13 @@ export default function MainTabs(): React.JSX.Element {
         component={TransferHubScreen}
         options={{title: 'Transferencias'}}
       />
+      {/* Zelle comentado por ahora
       <Tab.Screen
         name="Zelle"
         component={ZelleHubScreen}
         options={{title: 'Zelle'}}
       />
+      */}
       <Tab.Screen
         name="Historial"
         component={HistoryScreen}

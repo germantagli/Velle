@@ -14,10 +14,12 @@ export class TransferController {
 
   @Get('search-user')
   async searchUser(
-    @CurrentUser() _user: {id: string},
+    @CurrentUser() user: {id: string; sub?: string},
     @Query('q') q: string,
   ) {
-    return this.transfer.searchUser(q);
+    const currentUserId = user?.id ?? user?.sub;
+    if (!currentUserId) return {users: []};
+    return this.transfer.searchUser(q, currentUserId);
   }
 
   @Post('p2p')

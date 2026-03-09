@@ -226,7 +226,7 @@ export const transferApi = {
   ) =>
     api.post('/transfer/p2p', {recipientId, amount, note, currency}),
   searchUser: (query: string) =>
-    api.get<{users: {id: string; firstName: string; lastName: string; email: string}[]}>(
+    api.get<{users: {id: string; firstName: string; lastName: string; email: string; phone: string | null}[]}>(
       '/transfer/search-user',
       {params: {q: query}},
     ),

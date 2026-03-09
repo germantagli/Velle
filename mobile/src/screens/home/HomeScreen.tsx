@@ -62,6 +62,7 @@ export default function HomeScreen(): React.JSX.Element {
           <Text style={styles.actionEmoji}>🔄</Text>
           <Text style={styles.actionLabel}>Convertir</Text>
         </TouchableOpacity>
+        {/* Zelle comentado por ahora
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => navigation.navigate('ZelleReceive')}>
@@ -74,6 +75,7 @@ export default function HomeScreen(): React.JSX.Element {
           <Text style={styles.actionEmoji}>📤</Text>
           <Text style={styles.actionLabel}>Enviar Zelle</Text>
         </TouchableOpacity>
+        */}
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => navigation.navigate('P2PTransfer')}>

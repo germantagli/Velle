@@ -13,15 +13,18 @@ import {
 } from 'react-native';
 import {useQuery} from '@tanstack/react-query';
 import {transferApi, walletApi} from '../../services/api';
+import {useAuthStore} from '../../store/authStore';
 
 interface UserResult {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
+  phone: string | null;
 }
 
 export default function P2PTransferScreen({navigation}: any): React.JSX.Element {
+  const currentUser = useAuthStore(s => s.user);
   const [query, setQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserResult | null>(null);
   const [amount, setAmount] = useState('');
@@ -37,12 +40,15 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
   const balanceUsdt = parseFloat(balanceData?.balanceUsdt ?? '0');
   const balance = currency === 'VES' ? balanceVes : balanceUsdt;
 
-  const {data: searchData} = useQuery({
-    queryKey: ['transfer', 'search', query],
-    queryFn: () => transferApi.searchUser(query).then(r => r.data),
-    enabled: query.length >= 2,
+  const {data: searchData, isLoading: searching} = useQuery({
+    queryKey: ['transfer', 'search', query.trim()],
+    queryFn: () => transferApi.searchUser(query.trim()).then(r => r.data),
+    enabled: query.trim().length >= 3,
+    staleTime: 5000,
   });
-  const users = searchData?.users ?? [];
+  const users = (searchData?.users ?? []).filter(
+    u => u.id !== currentUser?.id,
+  );
 
   const amountNum = parseFloat(amount) || 0;
 
@@ -84,19 +90,28 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.content}>
-        <Text style={styles.label}>Buscar destinatario (email o teléfono)</Text>
+        <Text style={styles.label}>Buscar destinatario</Text>
         <TextInput
           style={styles.input}
-          placeholder="usuario@email.com"
+          placeholder="Nombre, email o teléfono (mín. 3 caracteres)"
           value={query}
           onChangeText={t => {
             setQuery(t);
-            if (!t) setSelectedUser(null);
+            if (!t.trim()) setSelectedUser(null);
           }}
           autoCapitalize="none"
           editable={!loading}
         />
-        {users.length > 0 && !selectedUser && (
+        {query.trim().length > 0 && query.trim().length < 3 && !selectedUser && (
+          <Text style={styles.hint}>Escribe al menos 3 caracteres para buscar</Text>
+        )}
+        {searching && query.trim().length >= 3 && !selectedUser && (
+          <View style={styles.searchingRow}>
+            <ActivityIndicator size="small" color="#0066CC" />
+            <Text style={styles.searchingText}>Buscando...</Text>
+          </View>
+        )}
+        {users.length > 0 && !selectedUser && !searching && (
           <FlatList
             data={users}
             keyExtractor={item => item.id}
@@ -109,15 +124,25 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
                   {item.firstName} {item.lastName}
                 </Text>
                 <Text style={styles.userEmail}>{item.email}</Text>
+                <Text style={styles.userPhone}>
+                  Tel: {item.phone ?? '—'}
+                </Text>
               </TouchableOpacity>
             )}
           />
+        )}
+        {query.trim().length >= 3 && users.length === 0 && !searching && !selectedUser && (
+          <Text style={styles.emptyText}>No se encontraron usuarios</Text>
         )}
         {selectedUser && (
           <View style={styles.selectedCard}>
             <Text style={styles.selectedLabel}>Destinatario</Text>
             <Text style={styles.selectedName}>
               {selectedUser.firstName} {selectedUser.lastName}
+            </Text>
+            <Text style={styles.selectedEmail}>{selectedUser.email}</Text>
+            <Text style={styles.selectedPhone}>
+              Tel: {selectedUser.phone ?? '—'}
             </Text>
             <TouchableOpacity
               onPress={() => setSelectedUser(null)}
@@ -203,7 +228,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
   },
-  userList: {maxHeight: 160, marginBottom: 16},
+  hint: {fontSize: 12, color: '#888', marginBottom: 8},
+  searchingRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12},
+  searchingText: {fontSize: 14, color: '#666'},
+  emptyText: {fontSize: 14, color: '#888', marginBottom: 16},
+  userList: {maxHeight: 200, marginBottom: 16},
   userItem: {
     padding: 14,
     backgroundColor: '#f9fafb',
@@ -212,6 +241,7 @@ const styles = StyleSheet.create({
   },
   userName: {fontSize: 16, fontWeight: '600'},
   userEmail: {fontSize: 12, color: '#666'},
+  userPhone: {fontSize: 12, color: '#666', marginTop: 2},
   selectedCard: {
     backgroundColor: '#f0f9ff',
     borderRadius: 12,
@@ -220,6 +250,8 @@ const styles = StyleSheet.create({
   },
   selectedLabel: {fontSize: 12, color: '#666'},
   selectedName: {fontSize: 16, fontWeight: '600'},
+  selectedEmail: {fontSize: 13, color: '#555', marginTop: 4},
+  selectedPhone: {fontSize: 13, color: '#555', marginTop: 2},
   changeBtn: {marginTop: 8},
   changeBtnText: {color: '#0066CC', fontSize: 14},
   balanceText: {fontSize: 12, color: '#666', marginBottom: 16},

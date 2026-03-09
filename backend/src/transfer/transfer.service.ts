@@ -10,24 +10,32 @@ import {Decimal} from '@prisma/client/runtime/library';
 export class TransferService {
   constructor(private prisma: PrismaService) {}
 
-  async searchUser(query: string) {
-    if (!query || query.length < 2) return {users: []};
+  async searchUser(query: string, excludeUserId: string) {
+    if (!query || query.trim().length < 3 || !excludeUserId) return {users: []};
+    const q = query.trim();
     const users = await this.prisma.user.findMany({
       where: {
-        OR: [
-          {email: {contains: query, mode: 'insensitive'}},
-          {phone: {contains: query}},
-          {
-            firstName: {contains: query, mode: 'insensitive'},
-          },
-          {lastName: {contains: query, mode: 'insensitive'}},
-        ],
+        id: {not: excludeUserId},
         kycStatus: 'VERIFIED',
+        OR: [
+          {email: {contains: q, mode: 'insensitive'}},
+          {phone: {contains: q}},
+          {firstName: {contains: q, mode: 'insensitive'}},
+          {lastName: {contains: q, mode: 'insensitive'}},
+        ],
       },
       take: 10,
-      select: {id: true, email: true, firstName: true, lastName: true},
+      select: {id: true, email: true, phone: true, firstName: true, lastName: true},
     });
-    return {users};
+    return {
+      users: users.map(u => ({
+        id: u.id,
+        email: u.email,
+        phone: u.phone ?? null,
+        firstName: u.firstName,
+        lastName: u.lastName,
+      })),
+    };
   }
 
   /** P2P en USDT */
