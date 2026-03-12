@@ -8,22 +8,24 @@ import {
   Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import {useAuthStore} from '../../store/authStore';
 
 export default function ProfileScreen(): React.JSX.Element {
+  const {t} = useTranslation();
   const navigation = useNavigation<any>();
   const {user, logout} = useAuthStore();
 
   const handleLogout = () => {
-    Alert.alert('Cerrar sesión', '¿Estás seguro?', [
-      {text: 'Cancelar', style: 'cancel'},
-      {text: 'Cerrar sesión', style: 'destructive', onPress: logout},
+    Alert.alert(t('auth.logout'), t('auth.logoutConfirm'), [
+      {text: t('common.cancel'), style: 'cancel'},
+      {text: t('auth.logout'), style: 'destructive', onPress: logout},
     ]);
   };
 
   const fullName = user
     ? `${user.firstName} ${user.lastName}`.trim() || user.email
-    : 'Usuario';
+    : t('common.user');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -49,7 +51,7 @@ export default function ProfileScreen(): React.JSX.Element {
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('EditProfile')}>
-          <Text style={styles.menuText}>Editar perfil</Text>
+          <Text style={styles.menuText}>{t('profile.editProfile')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         {user?.kycStatus !== 'VERIFIED' && user?.kycStatus !== 'UNDER_REVIEW' && (
@@ -58,37 +60,43 @@ export default function ProfileScreen(): React.JSX.Element {
             onPress={() =>
               (navigation.getParent() as any)?.navigate('KYC')
             }>
-            <Text style={styles.menuText}>Verificación KYC</Text>
+            <Text style={styles.menuText}>{t('profile.kyc')}</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('Security')}>
-          <Text style={styles.menuText}>Seguridad</Text>
+          <Text style={styles.menuText}>{t('profile.security')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('TwoFA')}>
-          <Text style={styles.menuText}>2FA (verificación en dos pasos)</Text>
+          <Text style={styles.menuText}>{t('profile.twoFA')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('Notifications')}>
-          <Text style={styles.menuText}>Notificaciones</Text>
+          <Text style={styles.menuText}>{t('profile.notifications')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('Support')}>
-          <Text style={styles.menuText}>Soporte / Ayuda</Text>
+          <Text style={styles.menuText}>{t('profile.support')}</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Language')}>
+          <Text style={styles.menuText}>{t('profile.language')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
+        <Text style={styles.logoutText}>{t('auth.logout')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

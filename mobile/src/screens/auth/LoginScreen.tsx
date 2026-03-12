@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useCallback} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -26,6 +27,7 @@ type LoginMode = 'password' | 'otp';
 export default function LoginScreen({
   navigation,
 }: any): React.JSX.Element {
+  const {t} = useTranslation();
   const [mode, setMode] = useState<LoginMode>('password');
   const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
@@ -100,7 +102,7 @@ export default function LoginScreen({
 
   const handlePasswordLogin = async () => {
     if (!contact.trim() || !password) {
-      Alert.alert('Error', 'Ingresa email/teléfono y contraseña');
+      Alert.alert(t('common.error'), t('auth.invalidPassword'));
       return;
     }
     setLoading(true);
@@ -110,13 +112,19 @@ export default function LoginScreen({
       const profile = tokenData.user;
       applyAuth(tokenData.access_token, profile);
       if (biometryType) {
+        const bioType =
+          biometryType === 'FaceID'
+            ? t('auth.biometricFaceId')
+            : biometryType === 'TouchID'
+              ? t('auth.biometricTouchId')
+              : t('auth.biometricFingerprint');
         Alert.alert(
-          '¿Usar biometría?',
-          `¿Guardar acceso con ${biometryType === 'FaceID' ? 'Face ID' : biometryType === 'TouchID' ? 'Touch ID' : 'huella dactilar'} para el próximo inicio?`,
+          t('auth.biometricPrompt'),
+          t('auth.biometricSave', {type: bioType}),
           [
-            {text: 'No'},
+            {text: t('auth.no')},
             {
-              text: 'Sí',
+              text: t('auth.yes'),
               onPress: () => {
                 if (profile)
                   storeCredentialsWithBiometric(
@@ -130,8 +138,8 @@ export default function LoginScreen({
       }
     } catch (err: any) {
       Alert.alert(
-        'Error',
-        err.response?.data?.message || err.message || 'Error al iniciar sesión',
+        t('common.error'),
+        err.response?.data?.message || err.message || t('auth.loginError'),
       );
     } finally {
       setLoading(false);
@@ -140,7 +148,7 @@ export default function LoginScreen({
 
   const handleRequestOtp = async () => {
     if (!contact.trim()) {
-      Alert.alert('Error', 'Ingresa tu email o teléfono');
+      Alert.alert(t('common.error'), t('auth.enterEmailOrPhone'));
       return;
     }
     setLoading(true);
@@ -149,12 +157,12 @@ export default function LoginScreen({
       const res = data as {message?: string; devCode?: string};
       setOtpStep('verify');
       if (res.devCode) {
-        Alert.alert('Código (desarrollo)', `Tu código: ${res.devCode}`);
+        Alert.alert(t('auth.devCodeTitle'), t('auth.devCode', {code: res.devCode}));
       }
     } catch (err: any) {
       Alert.alert(
-        'Error',
-        err.response?.data?.message || err.message || 'Error al enviar el código',
+        t('common.error'),
+        err.response?.data?.message || err.message,
       );
     } finally {
       setLoading(false);
@@ -163,7 +171,7 @@ export default function LoginScreen({
 
   const handleVerifyOtpLogin = async () => {
     if (!contact.trim() || !otpCode.trim()) {
-      Alert.alert('Error', 'Ingresa el código recibido');
+      Alert.alert(t('common.error'), t('auth.enterReceivedCode'));
       return;
     }
     setLoading(true);
@@ -172,13 +180,19 @@ export default function LoginScreen({
       const profile = (data as any).user;
       applyAuth((data as any).access_token, profile);
       if (biometryType) {
+        const bioType =
+          biometryType === 'FaceID'
+            ? t('auth.biometricFaceId')
+            : biometryType === 'TouchID'
+              ? t('auth.biometricTouchId')
+              : t('auth.biometricFingerprint');
         Alert.alert(
-          '¿Usar biometría?',
-          `¿Guardar acceso con ${biometryType === 'FaceID' ? 'Face ID' : biometryType === 'TouchID' ? 'Touch ID' : 'huella'} para el próximo inicio?`,
+          t('auth.biometricPrompt'),
+          t('auth.biometricSave', {type: bioType}),
           [
-            {text: 'No'},
+            {text: t('auth.no')},
             {
-              text: 'Sí',
+              text: t('auth.yes'),
               onPress: () => {
                 if (profile)
                   storeCredentialsWithBiometric(
@@ -192,8 +206,8 @@ export default function LoginScreen({
       }
     } catch (err: any) {
       Alert.alert(
-        'Error',
-        err.response?.data?.message || err.message || 'Código inválido o expirado',
+        t('common.error'),
+        err.response?.data?.message || err.message || t('auth.invalidOrExpired'),
       );
     } finally {
       setLoading(false);
@@ -202,11 +216,11 @@ export default function LoginScreen({
 
   const biometryLabel =
     biometryType === 'FaceID'
-      ? 'Face ID'
+      ? t('auth.biometricFaceId')
       : biometryType === 'TouchID'
-        ? 'Touch ID'
+        ? t('auth.biometricTouchId')
         : biometryType
-          ? 'Huella dactilar'
+          ? t('auth.biometricFingerprint')
           : '';
 
   return (
@@ -215,7 +229,7 @@ export default function LoginScreen({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.content}>
         <Text style={styles.title}>Velle</Text>
-        <Text style={styles.subtitle}>Plataforma Financiera Venezuela</Text>
+        <Text style={styles.subtitle}>{t('app.tagline')}</Text>
 
         {showBiometric && biometryType && (
           <TouchableOpacity
@@ -226,13 +240,13 @@ export default function LoginScreen({
               {biometryType === 'FaceID' ? '👤' : '👆'}
             </Text>
             <Text style={styles.biometricText}>
-              Iniciar con {biometryLabel}
+              {t('auth.loginWithBiometric', {type: biometryLabel})}
             </Text>
           </TouchableOpacity>
         )}
 
         {showBiometric && (
-          <Text style={styles.divider}>o inicia sesión manualmente</Text>
+          <Text style={styles.divider}>{t('auth.loginManually')}</Text>
         )}
 
         <View style={styles.tabs}>
@@ -247,7 +261,7 @@ export default function LoginScreen({
                 styles.tabText,
                 mode === 'password' && styles.tabTextActive,
               ]}>
-              Contraseña
+              {t('auth.passwordTab')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -263,12 +277,10 @@ export default function LoginScreen({
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.label}>
-          {mode === 'password' ? 'Email o teléfono' : 'Email o teléfono'}
-        </Text>
+        <Text style={styles.label}>{t('auth.emailOrPhone')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="tu@email.com o +58 412 1234567"
+          placeholder={t('auth.emailOrPhone')}
           value={contact}
           onChangeText={setContact}
           keyboardType={mode === 'otp' ? 'email-address' : 'default'}
@@ -279,7 +291,7 @@ export default function LoginScreen({
 
         {mode === 'password' && (
           <>
-            <Text style={styles.label}>Contraseña</Text>
+            <Text style={styles.label}>{t('auth.password')}</Text>
             <TextInput
               style={styles.input}
               placeholder="••••••••"
@@ -296,7 +308,7 @@ export default function LoginScreen({
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Iniciar sesión</Text>
+                <Text style={styles.buttonText}>{t('auth.login')}</Text>
               )}
             </TouchableOpacity>
           </>
@@ -312,12 +324,12 @@ export default function LoginScreen({
                 {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.buttonText}>Enviar código</Text>
+                  <Text style={styles.buttonText}>{t('auth.sendCode')}</Text>
                 )}
               </TouchableOpacity>
             ) : (
               <>
-                <Text style={styles.label}>Código</Text>
+                <Text style={styles.label}>{t('auth.code')}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="123456"
@@ -334,13 +346,13 @@ export default function LoginScreen({
                   {loading ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.buttonText}>Verificar e iniciar</Text>
+                    <Text style={styles.buttonText}>{t('auth.verifyAndLogin')}</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setOtpStep('request')}
                   disabled={loading}>
-                  <Text style={styles.link}>Reenviar código</Text>
+                  <Text style={styles.link}>{t('auth.resendCode')}</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -350,12 +362,12 @@ export default function LoginScreen({
         <TouchableOpacity
           onPress={() => navigation.navigate('ForgotPassword')}
           disabled={loading}>
-          <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
+          <Text style={styles.link}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate('Register')}
           disabled={loading}>
-          <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
+          <Text style={styles.link}>{t('auth.noAccount')}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

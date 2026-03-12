@@ -2,6 +2,9 @@
  * Velle - Plataforma Financiera Venezuela
  * App móvil React Native
  */
+import './src/i18n';
+import './src/store/languageStore';
+
 import React from 'react';
 import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';

@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
@@ -6,6 +7,7 @@ import SecurityScreen from '../screens/profile/SecurityScreen';
 import TwoFAScreen from '../screens/profile/TwoFAScreen';
 import NotificationsScreen from '../screens/profile/NotificationsScreen';
 import SupportScreen from '../screens/profile/SupportScreen';
+import LanguageScreen from '../screens/profile/LanguageScreen';
 
 export type ProfileStackParamList = {
   ProfileHome: undefined;
@@ -14,11 +16,13 @@ export type ProfileStackParamList = {
   TwoFA: undefined;
   Notifications: undefined;
   Support: undefined;
+  Language: undefined;
 };
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
 export default function ProfileStack(): React.JSX.Element {
+  const {t} = useTranslation();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -29,17 +33,17 @@ export default function ProfileStack(): React.JSX.Element {
       <Stack.Screen
         name="ProfileHome"
         component={ProfileScreen}
-        options={{title: 'Perfil'}}
+        options={{title: t('profile.title')}}
       />
       <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}
-        options={{title: 'Editar perfil'}}
+        options={{title: t('profile.editProfile')}}
       />
       <Stack.Screen
         name="Security"
         component={SecurityScreen}
-        options={{title: 'Seguridad'}}
+        options={{title: t('profile.security')}}
       />
       <Stack.Screen
         name="TwoFA"
@@ -49,12 +53,17 @@ export default function ProfileStack(): React.JSX.Element {
       <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
-        options={{title: 'Notificaciones'}}
+        options={{title: t('profile.notifications')}}
       />
       <Stack.Screen
         name="Support"
         component={SupportScreen}
-        options={{title: 'Soporte'}}
+        options={{title: t('profile.support')}}
+      />
+      <Stack.Screen
+        name="Language"
+        component={LanguageScreen}
+        options={{title: t('language.title')}}
       />
     </Stack.Navigator>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/home/HomeScreen';
 import TransferHubScreen from '../screens/transfer/TransferHubScreen';
@@ -8,6 +9,7 @@ import ProfileStack from './ProfileStack';
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs(): React.JSX.Element {
+  const {t} = useTranslation();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -21,22 +23,22 @@ export default function MainTabs(): React.JSX.Element {
       <Tab.Screen
         name="Inicio"
         component={HomeScreen}
-        options={{title: 'Wallet'}}
+        options={{title: t('tabs.wallet')}}
       />
       <Tab.Screen
         name="Transferir"
         component={TransferHubScreen}
-        options={{title: 'Transferencias'}}
+        options={{title: t('tabs.transfers')}}
       />
       <Tab.Screen
         name="Historial"
         component={HistoryScreen}
-        options={{title: 'Historial'}}
+        options={{title: t('tabs.history')}}
       />
       <Tab.Screen
         name="Perfil"
         component={ProfileStack}
-        options={{title: 'Perfil', headerShown: false}}
+        options={{title: t('tabs.profile'), headerShown: false}}
       />
     </Tab.Navigator>
   );

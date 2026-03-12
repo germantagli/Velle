@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -12,6 +13,7 @@ import {useNavigation} from '@react-navigation/native';
 import {walletApi} from '../../services/api';
 
 export default function HomeScreen(): React.JSX.Element {
+  const {t} = useTranslation();
   const navigation = useNavigation<any>();
   const {data, isLoading, refetch} = useQuery({
     queryKey: ['wallet', 'balance'],
@@ -35,7 +37,7 @@ export default function HomeScreen(): React.JSX.Element {
         <RefreshControl refreshing={isLoading} onRefresh={refetch} />
       }>
       <View style={styles.mainBalance}>
-        <Text style={styles.label}>Tu saldo</Text>
+        <Text style={styles.label}>{t('home.balance')}</Text>
         <Text style={styles.mainAmount}>{formatAmount(balanceUsdt)} USDT</Text>
         <Text style={styles.secondary}>≈ {formatAmount(balanceVes)} VES</Text>
       </View>
@@ -54,13 +56,13 @@ export default function HomeScreen(): React.JSX.Element {
           style={styles.actionBtn}
           onPress={() => navigation.navigate('Deposit')}>
           <Text style={styles.actionEmoji}>💵</Text>
-          <Text style={styles.actionLabel}>Agregar VES</Text>
+          <Text style={styles.actionLabel}>{t('home.addVes')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => navigation.navigate('Convert')}>
           <Text style={styles.actionEmoji}>🔄</Text>
-          <Text style={styles.actionLabel}>Convertir</Text>
+          <Text style={styles.actionLabel}>{t('home.convert')}</Text>
         </TouchableOpacity>
         {/* Zelle comentado por ahora
         <TouchableOpacity
