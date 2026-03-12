@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuthStore} from '../store/authStore';
 
@@ -44,6 +45,7 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator(): React.JSX.Element {
+  const {t} = useTranslation();
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const isKYCComplete = useAuthStore(s => s.isKYCComplete);
   const needsMFA = useAuthStore(s => s.needsMFA ?? false);
@@ -55,8 +57,11 @@ export function RootNavigator(): React.JSX.Element {
     user?.kycStatus !== 'UNDER_REVIEW';
   const initialRoute = showKYCFirst ? 'KYC' : 'Main';
 
+  const stackKey = !isAuthenticated ? 'auth' : needsMFA ? 'mfa' : showKYCFirst ? 'kyc' : 'main';
+
   return (
     <Stack.Navigator
+      key={stackKey}
       initialRouteName={initialRoute}
       screenOptions={{
         headerShown: false,
@@ -75,58 +80,58 @@ export function RootNavigator(): React.JSX.Element {
           <Stack.Screen
             name="KYC"
             component={KYCScreen}
-            options={{headerShown: true, title: 'Verificación KYC'}}
+            options={{headerShown: true, title: t('nav.kyc')}}
           />
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen
             name="Deposit"
             component={DepositScreen}
-            options={{headerShown: true, title: 'Agregar Bolívares'}}
+            options={{headerShown: true, title: t('nav.addBolivares')}}
           />
           <Stack.Screen
             name="Convert"
             component={ConvertScreen}
-            options={{headerShown: true, title: 'Convertir'}}
+            options={{headerShown: true, title: t('nav.convert')}}
           />
           <Stack.Screen
             name="USAWithdrawal"
             component={USAWithdrawalScreen}
-            options={{headerShown: true, title: 'Retiro a USA'}}
+            options={{headerShown: true, title: t('nav.usaWithdrawal')}}
           />
           <Stack.Screen
             name="AddBankAccount"
             component={AddBankAccountScreen}
-            options={{headerShown: true, title: 'Añadir cuenta USA'}}
+            options={{headerShown: true, title: t('nav.addBankAccount')}}
           />
           <Stack.Screen
             name="ZelleSend"
             component={ZelleSendScreen}
-            options={{headerShown: true, title: 'Enviar a Zelle'}}
+            options={{headerShown: true, title: t('nav.zelleSend')}}
           />
           <Stack.Screen
             name="ZelleReceive"
             component={ZelleReceiveScreen}
-            options={{headerShown: true, title: 'Recibir Zelle'}}
+            options={{headerShown: true, title: t('nav.zelleReceive')}}
           />
           <Stack.Screen
             name="P2PTransfer"
             component={P2PTransferScreen}
-            options={{headerShown: true, title: 'Transferir P2P'}}
+            options={{headerShown: true, title: t('transfer.sendToContact')}}
           />
           <Stack.Screen
             name="MerchantPay"
             component={MerchantPayScreen}
-            options={{headerShown: true, title: 'Pagar comercio'}}
+            options={{headerShown: true, title: t('nav.payMerchant')}}
           />
           <Stack.Screen
             name="VirtualCard"
             component={VirtualCardScreen}
-            options={{headerShown: true, title: 'Tarjeta virtual'}}
+            options={{headerShown: true, title: t('nav.virtualCard')}}
           />
           <Stack.Screen
             name="TransactionDetail"
             component={TransactionDetailScreen}
-            options={{headerShown: true, title: 'Detalle'}}
+            options={{headerShown: true, title: t('nav.detail')}}
           />
         </>
       )}

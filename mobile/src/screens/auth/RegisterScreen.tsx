@@ -151,6 +151,9 @@ export default function RegisterScreen({navigation}: any): React.JSX.Element {
               firstName: profile.firstName || '',
               lastName: profile.lastName || '',
               kycStatus: profile.kycStatus,
+              kycSkipped: profile.kycSkipped,
+              passwordSet: profile.passwordSet,
+              mfaEnabled: profile.mfaEnabled,
             }
           : undefined,
         needsMFA: profile?.mfaEnabled && !profile?.mfaVerified,

@@ -95,7 +95,7 @@ export const authApi = {
 export const userApi = {
   skipKyc: () => api.post('/user/skip-kyc'),
   getProfile: () => api.get('/user/profile'),
-  updateProfile: (data: Partial<{firstName: string; lastName: string; phone: string}>) =>
+  updateProfile: (data: Partial<{firstName: string; lastName: string; phone: string; address: string}>) =>
     api.patch('/user/profile', data),
   setNotifications: (enabled: boolean) =>
     api.patch('/user/notifications', {enabled}),

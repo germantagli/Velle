@@ -1,41 +1,35 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 
 export default function TransferHubScreen(): React.JSX.Element {
+  const {t} = useTranslation();
   const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.subtitle}>
-        Transferencias y pagos en USDT
-      </Text>
+      <Text style={styles.subtitle}>{t('transferHub.subtitle')}</Text>
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('P2PTransfer')}>
         <Text style={styles.cardEmoji}>👤</Text>
-        <Text style={styles.cardTitle}>Transferir a usuario</Text>
-        <Text style={styles.cardDesc}>
-          Envía USDT a otro usuario de Velle por teléfono o email
-        </Text>
+        <Text style={styles.cardTitle}>{t('transferHub.transferToUser')}</Text>
+        <Text style={styles.cardDesc}>{t('transferHub.transferToUserDesc')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.card, styles.disabled]}
         disabled>
         <Text style={styles.cardEmoji}>🏪</Text>
-        <Text style={styles.cardTitle}>Pagar en comercio</Text>
-        <Text style={styles.cardDesc}>
-          Escanea QR o usa NFC para pagar en tiendas
-        </Text>
+        <Text style={styles.cardTitle}>{t('transferHub.payMerchant')}</Text>
+        <Text style={styles.cardDesc}>{t('transferHub.payMerchantDesc')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.card, styles.disabled]}
         disabled>
         <Text style={styles.cardEmoji}>💳</Text>
-        <Text style={styles.cardTitle}>Tarjeta virtual</Text>
-        <Text style={styles.cardDesc}>
-          Visa/Mastercard para compras online
-        </Text>
+        <Text style={styles.cardTitle}>{t('transferHub.virtualCard')}</Text>
+        <Text style={styles.cardDesc}>{t('transferHub.virtualCardDesc')}</Text>
       </TouchableOpacity>
     </View>
   );

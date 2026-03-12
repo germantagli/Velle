@@ -2,6 +2,8 @@ import * as Keychain from 'react-native-keychain';
 
 const KEYCHAIN_SERVICE = 'velle.app';
 const KEYCHAIN_USER = 'velle-credentials';
+const REMEMBER_ME_SERVICE = 'velle.app.remember';
+const REMEMBER_ME_USER = 'velle-remember';
 
 export type BiometryType = 'FaceID' | 'TouchID' | 'Biometrics' | 'Fingerprint' | 'Face' | null;
 
@@ -92,6 +94,45 @@ export async function getCredentialsWithBiometricPrompt(): Promise<{
 export async function clearStoredCredentials(): Promise<void> {
   try {
     await Keychain.resetGenericPassword({service: KEYCHAIN_SERVICE});
+  } catch {
+    // ignore
+  }
+}
+
+/** Recordar usuario y contraseña (solo para modo contraseña) */
+export async function storeRememberMeCredentials(
+  contact: string,
+  password: string,
+): Promise<void> {
+  try {
+    await Keychain.setGenericPassword(
+      REMEMBER_ME_USER,
+      JSON.stringify({contact, password}),
+      {service: REMEMBER_ME_SERVICE, accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED},
+    );
+  } catch {
+    // ignore
+  }
+}
+
+export async function getRememberMeCredentials(): Promise<{
+  contact: string;
+  password: string;
+} | null> {
+  try {
+    const creds = await Keychain.getGenericPassword({
+      service: REMEMBER_ME_SERVICE,
+    });
+    if (!creds?.password) return null;
+    return JSON.parse(creds.password) as {contact: string; password: string};
+  } catch {
+    return null;
+  }
+}
+
+export async function clearRememberMeCredentials(): Promise<void> {
+  try {
+    await Keychain.resetGenericPassword({service: REMEMBER_ME_SERVICE});
   } catch {
     // ignore
   }

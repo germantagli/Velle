@@ -14,6 +14,7 @@ export class UserService {
         phone: true,
         firstName: true,
         lastName: true,
+        address: true,
         kycStatus: true,
         kycSkipped: true,
         mfaEnabled: true,
@@ -31,7 +32,7 @@ export class UserService {
 
   async updateProfile(
     userId: string,
-    data: {firstName?: string; lastName?: string; phone?: string},
+    data: {firstName?: string; lastName?: string; phone?: string; address?: string},
   ) {
     return this.prisma.user.update({
       where: {id: userId},
@@ -39,6 +40,7 @@ export class UserService {
         ...(data.firstName !== undefined && {firstName: data.firstName}),
         ...(data.lastName !== undefined && {lastName: data.lastName}),
         ...(data.phone !== undefined && {phone: data.phone || null}),
+        ...(data.address !== undefined && {address: data.address || null}),
       },
     });
   }

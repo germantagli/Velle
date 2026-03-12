@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import {PasswordInput} from '../../components/PasswordInput';
 import {authApi} from '../../services/api';
 
 export default function ForgotPasswordScreen({
@@ -120,12 +121,11 @@ export default function ForgotPasswordScreen({
               editable={!loading}
             />
             <Text style={styles.label}>Nueva contraseña</Text>
-            <TextInput
-              style={styles.input}
+            <PasswordInput
+              inputStyle={styles.input}
               placeholder="Mínimo 6 caracteres"
               value={newPassword}
               onChangeText={setNewPassword}
-              secureTextEntry
               editable={!loading}
             />
             <TouchableOpacity

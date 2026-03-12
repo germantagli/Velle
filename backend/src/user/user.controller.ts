@@ -19,7 +19,7 @@ export class UserController {
   @Patch('profile')
   async updateProfile(
     @CurrentUser() user: {id: string},
-    @Body() body: {firstName?: string; lastName?: string; phone?: string},
+    @Body() body: {firstName?: string; lastName?: string; phone?: string; address?: string},
   ) {
     return this.user.updateProfile(user.id, body);
   }

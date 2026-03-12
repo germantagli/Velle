@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -18,6 +19,7 @@ import {useQueryClient} from '@tanstack/react-query';
 type Direction = 'ves-to-usdt' | 'usdt-to-ves';
 
 export default function ConvertScreen({navigation}: any): React.JSX.Element {
+  const {t} = useTranslation();
   const [direction, setDirection] = useState<Direction>('ves-to-usdt');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,35 +56,35 @@ export default function ConvertScreen({navigation}: any): React.JSX.Element {
 
   const handleConvert = async () => {
     if (amountNum <= 0) {
-      Alert.alert('Error', 'Ingresa un monto válido');
+      Alert.alert(t('common.error'), t('p2p.enterValidAmount'));
       return;
     }
     if (direction === 'ves-to-usdt' && amountNum > balanceVes) {
-      Alert.alert('Error', 'Saldo en VES insuficiente');
+      Alert.alert(t('common.error'), t('wallet.insufficientVes'));
       return;
     }
     if (direction === 'usdt-to-ves' && amountNum > balanceUsdt) {
-      Alert.alert('Error', 'Saldo en USDT insuficiente');
+      Alert.alert(t('common.error'), t('wallet.insufficientUsdt'));
       return;
     }
     setLoading(true);
     try {
       if (direction === 'ves-to-usdt') {
         await conversionApi.vesToUsdt(amountNum);
-        Alert.alert('Éxito', 'Conversión completada. VES → USDT', [
-          {text: 'OK', onPress: () => navigation.goBack()},
+        Alert.alert(t('common.success'), `${t('wallet.conversionSuccess')} VES → USDT`, [
+          {text: t('common.ok'), onPress: () => navigation.goBack()},
         ]);
       } else {
         await conversionApi.usdtToVes(amountNum);
-        Alert.alert('Éxito', 'Conversión completada. USDT → VES', [
-          {text: 'OK', onPress: () => navigation.goBack()},
+        Alert.alert(t('common.success'), `${t('wallet.conversionSuccess')} USDT → VES`, [
+          {text: t('common.ok'), onPress: () => navigation.goBack()},
         ]);
       }
       queryClient.invalidateQueries({queryKey: ['wallet', 'balance']});
     } catch (e: any) {
       const msg =
-        e.response?.data?.message || e.message || 'Error en la conversión';
-      Alert.alert('Error', msg);
+        e.response?.data?.message || e.message || t('wallet.conversionError');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,7 @@ export default function ConvertScreen({navigation}: any): React.JSX.Element {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled">
-        <Text style={styles.rateLabel}>Tasa actual: 1 USDT = {rate} VES</Text>
+        <Text style={styles.rateLabel}>{t('wallet.currentRate', {rate})}</Text>
 
         <View style={styles.toggle}>
           <TouchableOpacity
@@ -140,7 +142,7 @@ export default function ConvertScreen({navigation}: any): React.JSX.Element {
           editable={!loading}
         />
         <Text style={styles.balance}>
-          Saldo:{' '}
+          {t('wallet.balance')}:{' '}
           {direction === 'ves-to-usdt'
             ? `${balanceVes.toLocaleString('es-VE')} VES`
             : `${balanceUsdt.toFixed(2)} USDT`}
@@ -156,7 +158,7 @@ export default function ConvertScreen({navigation}: any): React.JSX.Element {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Convertir</Text>
+            <Text style={styles.buttonText}>{t('wallet.convertBtn')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

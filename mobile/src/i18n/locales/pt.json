@@ -1,6 +1,8 @@
 {
   "common": {
     "error": "Erro",
+    "success": "Sucesso",
+    "ok": "OK",
     "cancel": "Cancelar",
     "save": "Salvar",
     "close": "Fechar",
@@ -62,7 +64,8 @@
     "yes": "Sim",
     "no": "Não",
     "otpTab": "Código OTP",
-    "passwordTab": "Senha"
+    "passwordTab": "Senha",
+    "rememberMe": "Lembrar usuário e senha"
   },
   "profile": {
     "title": "Perfil",
@@ -73,6 +76,9 @@
     "notifications": "Notificações",
     "support": "Suporte / Ajuda",
     "language": "Idioma"
+  },
+  "transfer": {
+    "sendToContact": "Enviar para um contato"
   },
   "tabs": {
     "wallet": "Wallet",
@@ -87,8 +93,213 @@
     "receiveZelle": "Receber Zelle",
     "sendZelle": "Enviar Zelle",
     "p2p": "P2P",
-    "receive": "Receber",
-    "withdraw": "Sacar"
+    "transfer": "Transferir",
+    "payMerchant": "Pagar comerciante",
+    "usaWithdraw": "Saque USA",
+    "viewVirtualCard": "Ver cartão virtual",
+    "viewTransactionHistory": "Ver histórico de transações"
+  },
+  "transferHub": {
+    "subtitle": "Transferências e pagamentos em USDT",
+    "transferToUser": "Transferir para usuário",
+    "transferToUserDesc": "Envie USDT para outro usuário Velle por telefone ou email",
+    "payMerchant": "Pagar em comercio",
+    "payMerchantDesc": "Escaneie QR ou use NFC para pagar em lojas",
+    "virtualCard": "Cartão virtual",
+    "virtualCardDesc": "Visa/Mastercard para compras online"
+  },
+  "p2p": {
+    "searchRecipient": "Buscar destinatário",
+    "searchPlaceholder": "Nome, email ou telefone (mín. 3 caracteres)",
+    "searchHint": "Digite pelo menos 3 caracteres para buscar",
+    "searching": "Buscando...",
+    "noUsersFound": "Nenhum usuário encontrado",
+    "recipient": "Destinatário",
+    "change": "Alterar",
+    "amount": "Valor",
+    "note": "Nota (opcional)",
+    "send": "Enviar",
+    "selectRecipient": "Selecione um destinatário",
+    "enterValidAmount": "Digite um valor válido",
+    "insufficientBalance": "Saldo insuficiente",
+    "transferSuccess": "Transferência enviada com sucesso",
+    "balance": "Saldo",
+    "notePlaceholder": "Concepto do pagamento"
+  },
+  "wallet": {
+    "balance": "Saldo",
+    "addBolivares": "Adicionar bolívares",
+    "amountVes": "Valor em bolívares (VES)",
+    "amountPlaceholder": "Ex: 1000",
+    "generateRef": "Gerar referência",
+    "referenceGenerated": "Referência gerada",
+    "amountToPay": "Valor a pagar",
+    "newRequest": "Nova solicitação",
+    "convert": "Converter",
+    "currentRate": "Taxa atual: 1 USDT = {{rate}} VES",
+    "convertBtn": "Converter",
+    "hint": "Faça seu pagamento móvel ou transferência com a referência que será gerada. O administrador confirmará seu depósito.",
+    "enterValidAmount": "Digite um valor válido em bolívares",
+    "createError": "Erro ao criar depósito",
+    "amountVesLabel": "Valor em VES",
+    "amountUsdtLabel": "Valor em USDT",
+    "conversionSuccess": "Conversão concluída",
+    "conversionError": "Erro na conversão",
+    "insufficientVes": "Saldo em VES insuficiente",
+    "insufficientUsdt": "Saldo em USDT insuficiente"
+  },
+  "withdrawal": {
+    "usa": "Saque USA",
+    "addAccount": "Adicionar conta USA",
+    "availableBalance": "Saldo disponível",
+    "destinationAccount": "Conta destino",
+    "addBankAccount": "+ Adicionar conta bancária USA",
+    "anotherAccount": "+ Outra conta",
+    "amountUsdt": "Valor em USDT",
+    "eta": "ETA: ~30 min (RTP) / 1-3 dias (ACH)",
+    "noteOptional": "Nota (opcional)",
+    "sendToMyAccount": "Enviar para minha conta USA",
+    "reference": "Referência",
+    "accountHolder": "Nome do titular",
+    "routingNumber": "Routing number (9 dígitos)",
+    "accountNumber": "Número da conta",
+    "accountType": "Tipo de conta",
+    "bankOptional": "Banco (opcional)",
+    "addAccountBtn": "Adicionar conta"
+  },
+  "zelle": {
+    "send": "Enviar para Zelle",
+    "receive": "Receber Zelle",
+    "receiveTitle": "Receber de Zelle",
+    "amountUsd": "Valor a receber (USD)",
+    "yourZelleEmail": "Seu email Zelle (para referência)",
+    "generateInstructions": "Gerar instruções",
+    "reference": "Referência",
+    "instructions": "Instruções",
+    "shareInstructions": "Compartilhar instruções",
+    "newRequest": "Nova solicitação",
+    "destinationEmail": "Email da conta Zelle destino",
+    "recipientName": "Nome do receptor (opcional)",
+    "sendBtn": "Enviar para Zelle",
+    "depositInstructions": "Instruções de depósito Zelle",
+    "receiveMoney": "Receber dinheiro",
+    "sendMoney": "Enviar dinheiro"
+  },
+  "merchant": {
+    "title": "Pagar em comercio",
+    "qrOrId": "Código QR ou ID do comerciante",
+    "searchMerchant": "Buscar comerciante",
+    "merchant": "Comerciante",
+    "change": "Alterar",
+    "amountToPay": "Valor a pagar (USDT)",
+    "pay": "Pagar"
+  },
+  "cards": {
+    "virtualCard": "Cartão virtual",
+    "noCards": "Você não tem cartões virtuais",
+    "createCard": "Criar cartão",
+    "frozen": "Congelado",
+    "createAnother": "+ Criar outro cartão"
+  },
+  "history": {
+    "noTransactions": "Sem transações"
+  },
+  "transactions": {
+    "notFound": "Transação não encontrada"
+  },
+  "editProfile": {
+    "profileUpdated": "Perfil atualizado",
+    "updateError": "Erro ao atualizar",
+    "firstName": "Nome",
+    "lastName": "Sobrenome",
+    "phoneOptional": "Telefone (opcional)",
+    "emailCannotChange": "O email não pode ser alterado.",
+    "saveChanges": "Salvar alterações",
+    "namePlaceholder": "Seu nome",
+    "lastNamePlaceholder": "Seu sobrenome",
+    "phonePlaceholder": "Ex: 04121234567",
+    "address": "Endereço",
+    "addressPlaceholder": "Digite seu endereço..."
+  },
+  "security": {
+    "currentPassword": "Senha atual",
+    "currentPasswordPlaceholder": "Sua senha atual",
+    "confirmPassword": "Confirmar senha",
+    "updatePassword": "Atualizar senha",
+    "setup2FA": "Configurar verificação em duas etapas (2FA) ›",
+    "minChars": "A senha deve ter pelo menos 6 caracteres",
+    "repeatPassword": "Repita a senha",
+    "setPassword": "Definir senha",
+    "changePassword": "Alterar senha",
+    "newPassword": "Nova senha",
+    "passwordPlaceholder": "Mínimo 6 caracteres",
+    "fillAllFields": "Preencha todos os campos",
+    "passwordsMismatch": "As senhas não coincidem",
+    "enterCurrentPassword": "Digite sua senha atual",
+    "passwordUpdated": "Senha atualizada",
+    "changeError": "Erro ao alterar senha"
+  },
+  "notifications": {
+    "title": "Notificações de transações",
+    "enable": "Ativar notificações"
+  },
+  "support": {
+    "needHelp": "Precisa de ajuda?",
+    "sectionDesc": "Estamos aqui para ajudar com qualquer dúvida sobre sua conta.",
+    "faqDesc": "Consulte as dúvidas mais comuns",
+    "understood": "Entendi",
+    "emailError": "Não foi possível abrir o email",
+    "faqContent": "Como adiciono bolívares? Vá em Adicionar VES, digite o valor e faça o pagamento móvel com a referência.\n\nComo transfiro para outro usuário? Vá em Transferir e busque por nome, email ou telefone.\n\nComo mudo minha senha? Perfil → Segurança → Alterar senha.",
+    "faq": "Perguntas frequentes",
+    "contactSupport": "Contatar suporte",
+    "footer": "Velle - Plataforma Financeira",
+    "version": "Versão 1.0.0"
+  },
+  "twoFA": {
+    "disable": "Desativar 2FA",
+    "enable": "Ativar 2FA",
+    "setupTitle": "Configurar 2FA",
+    "enterCode": "Digite o código de 6 dígitos:",
+    "verifyAndEnable": "Verificar e ativar",
+    "disableTitle": "Desativar 2FA",
+    "disableBtn": "Desativar 2FA",
+    "cancel": "Cancelar"
+  },
+  "mfa": {
+    "title": "Verificação em duas etapas",
+    "verify": "Verificar"
+  },
+  "forgotPassword": {
+    "title": "Esqueci minha senha",
+    "newPassword": "Nova senha",
+    "changePassword": "Alterar senha",
+    "changeEmail": "Alterar email",
+    "backToLogin": "Voltar ao login",
+    "emailPlaceholder": "seu@email.com",
+    "codePlaceholder": "123456",
+    "passwordPlaceholder": "Mínimo 6 caracteres"
+  },
+  "kyc": {
+    "title": "Verificação KYC",
+    "documentId": "Número do documento ou passaporte",
+    "address": "Endereço residencial",
+    "documentsRequired": "Documentos necessários",
+    "submitVerification": "Enviar verificação",
+    "skipForNow": "Pular por agora",
+    "documentPlaceholder": "V-12345678",
+    "addressPlaceholder": "Rua, número, cidade, estado"
+  },
+  "nav": {
+    "kyc": "Verificação KYC",
+    "addBolivares": "Adicionar bolívares",
+    "convert": "Converter",
+    "usaWithdrawal": "Saque USA",
+    "addBankAccount": "Adicionar conta USA",
+    "zelleSend": "Enviar para Zelle",
+    "zelleReceive": "Receber Zelle",
+    "payMerchant": "Pagar comerciante",
+    "virtualCard": "Cartão virtual",
+    "detail": "Detalhe"
   },
   "language": {
     "title": "Idioma",

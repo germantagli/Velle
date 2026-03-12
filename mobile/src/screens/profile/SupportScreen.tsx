@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -42,15 +43,15 @@ export default function SupportScreen(): React.JSX.Element {
       </TouchableOpacity>
       <TouchableOpacity style={styles.card} onPress={handleEmail}>
         <Text style={styles.cardEmoji}>✉️</Text>
-        <Text style={styles.cardTitle}>Contactar soporte</Text>
+        <Text style={styles.cardTitle}>{t('support.contactSupport')}</Text>
         <Text style={styles.cardDesc}>
           soporte@velle.app
         </Text>
         <Text style={styles.cardArrow}>›</Text>
       </TouchableOpacity>
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Velle - Plataforma Financiera</Text>
-        <Text style={styles.footerVersion}>Versión 1.0.0</Text>
+        <Text style={styles.footerText}>{t('support.footer')}</Text>
+        <Text style={styles.footerVersion}>{t('support.version')}</Text>
       </View>
     </ScrollView>
   );

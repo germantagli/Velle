@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -15,6 +16,7 @@ import {depositApi} from '../../services/api';
 import {useQueryClient} from '@tanstack/react-query';
 
 export default function DepositScreen({navigation}: any): React.JSX.Element {
+  const {t} = useTranslation();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -28,7 +30,7 @@ export default function DepositScreen({navigation}: any): React.JSX.Element {
   const handleCreate = async () => {
     const amountNum = parseFloat(amount) || 0;
     if (amountNum <= 0) {
-      Alert.alert('Error', 'Ingresa un monto válido en bolívares');
+      Alert.alert(t('common.error'), t('wallet.enterValidAmount'));
       return;
     }
     setLoading(true);
@@ -42,8 +44,8 @@ export default function DepositScreen({navigation}: any): React.JSX.Element {
       queryClient.invalidateQueries({queryKey: ['wallet', 'balance']});
     } catch (e: any) {
       const msg =
-        e.response?.data?.message || e.message || 'Error al crear depósito';
-      Alert.alert('Error', msg);
+        e.response?.data?.message || e.message || t('wallet.createError');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -58,15 +60,15 @@ export default function DepositScreen({navigation}: any): React.JSX.Element {
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.successCard}>
-          <Text style={styles.successTitle}>Referencia generada</Text>
+          <Text style={styles.successTitle}>{t('wallet.referenceGenerated')}</Text>
           <Text style={styles.reference}>{result.reference}</Text>
-          <Text style={styles.amountLabel}>Monto a pagar</Text>
+          <Text style={styles.amountLabel}>{t('wallet.amountToPay')}</Text>
           <Text style={styles.amountValue}>
             {result.amount.toLocaleString('es-VE')} VES
           </Text>
           <Text style={styles.instructions}>{result.instructions}</Text>
           <TouchableOpacity style={styles.button} onPress={handleReset}>
-            <Text style={styles.buttonText}>Nueva solicitud</Text>
+            <Text style={styles.buttonText}>{t('wallet.newRequest')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -89,10 +91,7 @@ export default function DepositScreen({navigation}: any): React.JSX.Element {
           keyboardType="decimal-pad"
           editable={!loading}
         />
-        <Text style={styles.hint}>
-          Realiza tu pago móvil o transferencia con la referencia que se
-          generará. El administrador confirmará tu depósito.
-        </Text>
+        <Text style={styles.hint}>{t('wallet.hint')}</Text>
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleCreate}
@@ -100,7 +99,7 @@ export default function DepositScreen({navigation}: any): React.JSX.Element {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Generar referencia</Text>
+            <Text style={styles.buttonText}>{t('wallet.generateRef')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

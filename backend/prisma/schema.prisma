@@ -25,6 +25,7 @@ model User {
   passwordSet   Boolean  @default(true) @map("password_set")
   limitTierId           String?  @map("limit_tier_id")
   notificationsEnabled  Boolean  @default(false) @map("notifications_enabled")
+  address               String?  @map("address")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

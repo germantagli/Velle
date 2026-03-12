@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -34,6 +35,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function HistoryScreen(): React.JSX.Element {
+  const {t} = useTranslation();
   const [page, setPage] = useState(1);
   const navigation = useNavigation<any>();
 
@@ -132,7 +134,7 @@ export default function HistoryScreen(): React.JSX.Element {
             </View>
           ) : (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>Sin transacciones</Text>
+              <Text style={styles.emptyText}>{t('history.noTransactions')}</Text>
             </View>
           )
         }

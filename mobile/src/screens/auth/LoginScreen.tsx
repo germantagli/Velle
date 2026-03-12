@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import {PasswordInput} from '../../components/PasswordInput';
 import {useAuthStore} from '../../store/authStore';
 import {authApi} from '../../services/api';
 import {
@@ -19,6 +20,9 @@ import {
   getCredentialsWithBiometricPrompt,
   storeCredentialsWithBiometric,
   clearStoredCredentials,
+  storeRememberMeCredentials,
+  getRememberMeCredentials,
+  clearRememberMeCredentials,
   type BiometryType,
 } from '../../services/biometric';
 
@@ -36,6 +40,7 @@ export default function LoginScreen({
   const [otpStep, setOtpStep] = useState<'request' | 'verify'>('request');
   const [biometryType, setBiometryType] = useState<BiometryType>(null);
   const [showBiometric, setShowBiometric] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const setAuth = useAuthStore(s => s.setAuth);
   const logout = useAuthStore(s => s.logout);
@@ -50,6 +55,9 @@ export default function LoginScreen({
             firstName: profile.firstName || '',
             lastName: profile.lastName || '',
             kycStatus: profile.kycStatus,
+            kycSkipped: profile.kycSkipped,
+            passwordSet: profile.passwordSet,
+            mfaEnabled: profile.mfaEnabled,
           }
         : undefined;
       setAuth({
@@ -68,13 +76,19 @@ export default function LoginScreen({
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [bio, hasCreds] = await Promise.all([
+      const [bio, hasCreds, remembered] = await Promise.all([
         getSupportedBiometry(),
         hasStoredCredentials(),
+        getRememberMeCredentials(),
       ]);
       if (mounted) {
         setBiometryType(bio);
         setShowBiometric(!!(bio && hasCreds));
+        if (remembered) {
+          setContact(remembered.contact);
+          setPassword(remembered.password);
+          setRememberMe(true);
+        }
       }
     })();
     return () => {
@@ -111,6 +125,11 @@ export default function LoginScreen({
       const tokenData = data as {access_token: string; user?: any};
       const profile = tokenData.user;
       applyAuth(tokenData.access_token, profile);
+      if (rememberMe) {
+        await storeRememberMeCredentials(contact.trim(), password);
+      } else {
+        await clearRememberMeCredentials();
+      }
       if (biometryType) {
         const bioType =
           biometryType === 'FaceID'
@@ -272,7 +291,7 @@ export default function LoginScreen({
             }}>
             <Text
               style={[styles.tabText, mode === 'otp' && styles.tabTextActive]}>
-              Código OTP
+              {t('auth.otpTab')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -292,15 +311,24 @@ export default function LoginScreen({
         {mode === 'password' && (
           <>
             <Text style={styles.label}>{t('auth.password')}</Text>
-            <TextInput
-              style={styles.input}
+            <PasswordInput
+              inputStyle={styles.input}
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
               autoComplete="password"
               editable={!loading}
             />
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setRememberMe(r => !r)}
+              activeOpacity={0.7}
+              disabled={loading}>
+              <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                {rememberMe && <Text style={styles.checkboxCheck}>✓</Text>}
+              </View>
+              <Text style={styles.checkboxLabel}>{t('auth.rememberMe')}</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handlePasswordLogin}
@@ -439,4 +467,22 @@ const styles = StyleSheet.create({
   buttonDisabled: {opacity: 0.7},
   buttonText: {color: '#fff', fontSize: 16, fontWeight: '600'},
   link: {color: '#0066CC', textAlign: 'center', fontSize: 14, marginBottom: 8},
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#0066CC',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {backgroundColor: '#0066CC'},
+  checkboxCheck: {color: '#fff', fontSize: 14, fontWeight: 'bold'},
+  checkboxLabel: {fontSize: 14, color: '#333', flex: 1},
 });

@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -24,6 +25,7 @@ interface UserResult {
 }
 
 export default function P2PTransferScreen({navigation}: any): React.JSX.Element {
+  const {t} = useTranslation();
   const currentUser = useAuthStore(s => s.user);
   const [query, setQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserResult | null>(null);
@@ -54,15 +56,15 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
 
   const handleSend = async () => {
     if (!selectedUser) {
-      Alert.alert('Error', 'Selecciona un destinatario');
+      Alert.alert(t('common.error'), t('p2p.selectRecipient'));
       return;
     }
     if (amountNum <= 0) {
-      Alert.alert('Error', 'Ingresa un monto válido');
+      Alert.alert(t('common.error'), t('p2p.enterValidAmount'));
       return;
     }
     if (amountNum > balance) {
-      Alert.alert('Error', 'Saldo insuficiente');
+      Alert.alert(t('common.error'), t('p2p.insufficientBalance'));
       return;
     }
     setLoading(true);
@@ -73,13 +75,13 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
         note || undefined,
         currency,
       );
-      Alert.alert('Éxito', 'Transferencia enviada correctamente', [
-        {text: 'OK', onPress: () => navigation.goBack()},
+      Alert.alert(t('common.success'), t('p2p.transferSuccess'), [
+        {text: t('common.ok'), onPress: () => navigation.goBack()},
       ]);
     } catch (e: any) {
       const msg =
-        e.response?.data?.message || e.message || 'Error al transferir';
-      Alert.alert('Error', msg);
+        e.response?.data?.message || e.message || t('common.error');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -90,10 +92,10 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.content}>
-        <Text style={styles.label}>Buscar destinatario</Text>
+        <Text style={styles.label}>{t('p2p.searchRecipient')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Nombre, email o teléfono (mín. 3 caracteres)"
+          placeholder={t('p2p.searchPlaceholder')}
           value={query}
           onChangeText={t => {
             setQuery(t);
@@ -103,12 +105,12 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
           editable={!loading}
         />
         {query.trim().length > 0 && query.trim().length < 3 && !selectedUser && (
-          <Text style={styles.hint}>Escribe al menos 3 caracteres para buscar</Text>
+          <Text style={styles.hint}>{t('p2p.searchHint')}</Text>
         )}
         {searching && query.trim().length >= 3 && !selectedUser && (
           <View style={styles.searchingRow}>
             <ActivityIndicator size="small" color="#0066CC" />
-            <Text style={styles.searchingText}>Buscando...</Text>
+            <Text style={styles.searchingText}>{t('p2p.searching')}</Text>
           </View>
         )}
         {users.length > 0 && !selectedUser && !searching && (
@@ -132,11 +134,11 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
           />
         )}
         {query.trim().length >= 3 && users.length === 0 && !searching && !selectedUser && (
-          <Text style={styles.emptyText}>No se encontraron usuarios</Text>
+          <Text style={styles.emptyText}>{t('p2p.noUsersFound')}</Text>
         )}
         {selectedUser && (
           <View style={styles.selectedCard}>
-            <Text style={styles.selectedLabel}>Destinatario</Text>
+            <Text style={styles.selectedLabel}>{t('p2p.recipient')}</Text>
             <Text style={styles.selectedName}>
               {selectedUser.firstName} {selectedUser.lastName}
             </Text>
@@ -147,7 +149,7 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
             <TouchableOpacity
               onPress={() => setSelectedUser(null)}
               style={styles.changeBtn}>
-              <Text style={styles.changeBtnText}>Cambiar</Text>
+              <Text style={styles.changeBtnText}>{t('p2p.change')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -181,7 +183,7 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
             </Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.label}>Monto ({currency})</Text>
+        <Text style={styles.label}>{t('p2p.amount')} ({currency})</Text>
         <TextInput
           style={styles.input}
           placeholder="0.00"
@@ -191,12 +193,12 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
           editable={!loading}
         />
         <Text style={styles.balanceText}>
-          Saldo: {currency === 'VES' ? balance.toLocaleString('es-VE') : balance.toFixed(2)} {currency}
+          {t('p2p.balance')}: {currency === 'VES' ? balance.toLocaleString('es-VE') : balance.toFixed(2)} {currency}
         </Text>
-        <Text style={styles.label}>Nota (opcional)</Text>
+        <Text style={styles.label}>{t('p2p.note')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Concepto del pago"
+          placeholder={t('p2p.notePlaceholder')}
           value={note}
           onChangeText={setNote}
           editable={!loading}
@@ -208,7 +210,7 @@ export default function P2PTransferScreen({navigation}: any): React.JSX.Element 
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Enviar</Text>
+            <Text style={styles.buttonText}>{t('p2p.send')}</Text>
           )}
         </TouchableOpacity>
       </View>

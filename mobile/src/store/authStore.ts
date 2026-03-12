@@ -21,6 +21,7 @@ interface User {
   phone: string;
   firstName: string;
   lastName: string;
+  address?: string;
   kycStatus: 'PENDING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED';
   kycSkipped?: boolean;
   mfaEnabled?: boolean;
@@ -42,7 +43,7 @@ export const useAuthStore = create<AuthState>()(
         set(state => {
           const kyc = auth.user?.kycStatus ?? state.user?.kycStatus;
           const isKYCComplete =
-            kyc === 'verified' || kyc === 'UNDER_REVIEW' || kyc === 'under_review';
+            kyc === 'VERIFIED' || kyc === 'verified' || kyc === 'UNDER_REVIEW' || kyc === 'under_review';
           const isAuthenticated =
             auth.token !== undefined ? !!auth.token : state.isAuthenticated;
           return {

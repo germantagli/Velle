@@ -82,30 +82,30 @@ export default function HomeScreen(): React.JSX.Element {
           style={styles.actionBtn}
           onPress={() => navigation.navigate('P2PTransfer')}>
           <Text style={styles.actionEmoji}>👤</Text>
-          <Text style={styles.actionLabel}>Transferir</Text>
+          <Text style={styles.actionLabel}>{t('home.transfer')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionBtn, styles.disabled]}
           disabled>
           <Text style={styles.actionEmoji}>🏪</Text>
-          <Text style={styles.actionLabel}>Pagar comercio</Text>
+          <Text style={styles.actionLabel}>{t('home.payMerchant')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
           onPress={() => navigation.navigate('USAWithdrawal')}>
           <Text style={styles.actionEmoji}>🇺🇸</Text>
-          <Text style={styles.actionLabel}>Retiro USA</Text>
+          <Text style={styles.actionLabel}>{t('home.usaWithdraw')}</Text>
         </TouchableOpacity>
       </View>
       <TouchableOpacity
         style={[styles.cardBtn, styles.disabled]}
         disabled>
-        <Text style={styles.cardBtnText}>💳 Ver tarjeta virtual</Text>
+        <Text style={styles.cardBtnText}>💳 {t('home.viewVirtualCard')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.historyLink}
         onPress={() => navigation.getParent()?.navigate('Historial')}>
-        <Text style={styles.historyLinkText}>Ver historial de transacciones →</Text>
+        <Text style={styles.historyLinkText}>{t('home.viewTransactionHistory')} →</Text>
       </TouchableOpacity>
     </ScrollView>
   );

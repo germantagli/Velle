@@ -54,12 +54,13 @@ export default function ProfileScreen(): React.JSX.Element {
           <Text style={styles.menuText}>{t('profile.editProfile')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
-        {user?.kycStatus !== 'VERIFIED' && user?.kycStatus !== 'UNDER_REVIEW' && (
+        {(user?.kycStatus !== 'VERIFIED' && user?.kycStatus !== 'UNDER_REVIEW') && (
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() =>
-              (navigation.getParent() as any)?.navigate('KYC')
-            }>
+            onPress={() => {
+              const root = (navigation.getParent() as any)?.getParent?.();
+              root?.navigate?.('KYC');
+            }}>
             <Text style={styles.menuText}>{t('profile.kyc')}</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>

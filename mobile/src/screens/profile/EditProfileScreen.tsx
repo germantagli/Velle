@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -13,20 +14,22 @@ import {
 } from 'react-native';
 import {useAuthStore} from '../../store/authStore';
 import {userApi} from '../../services/api';
+import {AddressAutocomplete} from '../../components/AddressAutocomplete';
 
 export default function EditProfileScreen({navigation}: any): React.JSX.Element {
+  const {t} = useTranslation();
   const user = useAuthStore(s => s.user);
   const setAuth = useAuthStore(s => s.setAuth);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
-  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [address, setAddress] = useState(user?.address ?? '');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setFirstName(user.firstName ?? '');
       setLastName(user.lastName ?? '');
-      setPhone(user.phone ?? '');
+      setAddress(user.address ?? '');
     }
   }, [user]);
 
@@ -36,16 +39,16 @@ export default function EditProfileScreen({navigation}: any): React.JSX.Element 
       const {data} = await userApi.updateProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim() || undefined,
+        address: address.trim() || undefined,
       });
       setAuth({user: {...user!, ...data}});
-      Alert.alert('Éxito', 'Perfil actualizado', [
-        {text: 'OK', onPress: () => navigation.goBack()},
+      Alert.alert(t('common.success'), t('editProfile.profileUpdated'), [
+        {text: t('common.ok'), onPress: () => navigation.goBack()},
       ]);
     } catch (e: any) {
       const msg =
-        e.response?.data?.message || e.message || 'Error al actualizar';
-      Alert.alert('Error', msg);
+        e.response?.data?.message || e.message || t('editProfile.updateError');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -55,33 +58,48 @@ export default function EditProfileScreen({navigation}: any): React.JSX.Element 
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.label}>Nombre</Text>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled">
+        <Text style={styles.label}>{t('editProfile.firstName')}</Text>
         <TextInput
           style={styles.input}
           value={firstName}
           onChangeText={setFirstName}
-          placeholder="Tu nombre"
+          placeholder={t('editProfile.namePlaceholder')}
           editable={!loading}
         />
-        <Text style={styles.label}>Apellido</Text>
+        <Text style={styles.label}>{t('editProfile.lastName')}</Text>
         <TextInput
           style={styles.input}
           value={lastName}
           onChangeText={setLastName}
-          placeholder="Tu apellido"
+          placeholder={t('editProfile.lastNamePlaceholder')}
           editable={!loading}
         />
-        <Text style={styles.label}>Teléfono (opcional)</Text>
+        <Text style={styles.label}>{t('auth.email')}</Text>
         <TextInput
-          style={styles.input}
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="Ej: 04121234567"
-          keyboardType="phone-pad"
+          style={[styles.input, styles.inputDisabled]}
+          value={user?.email ?? ''}
+          placeholder={t('auth.email')}
+          editable={false}
+        />
+        <Text style={styles.label}>{t('editProfile.phoneOptional')}</Text>
+        <TextInput
+          style={[styles.input, styles.inputDisabled]}
+          value={user?.phone ?? ''}
+          placeholder={t('editProfile.phonePlaceholder')}
+          editable={false}
+        />
+        <Text style={styles.label}>{t('editProfile.address')}</Text>
+        <AddressAutocomplete
+          value={address}
+          onChangeText={setAddress}
+          onSelectAddress={setAddress}
+          placeholder={t('editProfile.addressPlaceholder')}
           editable={!loading}
         />
-        <Text style={styles.hint}>El email no se puede cambiar.</Text>
+        <Text style={styles.hint}>{t('editProfile.emailCannotChange')}</Text>
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSave}
@@ -89,7 +107,7 @@ export default function EditProfileScreen({navigation}: any): React.JSX.Element 
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Guardar cambios</Text>
+            <Text style={styles.buttonText}>{t('editProfile.saveChanges')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -109,6 +127,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     backgroundColor: '#fff',
+  },
+  inputDisabled: {
+    backgroundColor: '#f0f0f0',
+    color: '#666',
   },
   hint: {fontSize: 12, color: '#888', marginBottom: 24},
   button: {
