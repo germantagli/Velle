@@ -253,7 +253,22 @@
     "version": "Version 1.0.0",
     "understood": "Got it",
     "emailError": "Could not open email",
-    "faqContent": "How do I add bolivars? Go to Add VES, enter the amount and make the mobile payment with the reference.\n\nHow do I transfer to another user? Go to Transfer and search by name, email or phone.\n\nHow do I change my password? Profile → Security → Change password."
+    "faqContent": "How do I add bolivars? Go to Add VES, enter the amount and make the mobile payment with the reference.\n\nHow do I transfer to another user? Go to Transfer and search by name, email or phone.\n\nHow do I change my password? Profile → Security → Change password.",
+    "ai": {
+      "welcome": "Hi, I'm Velle's virtual assistant. I only answer questions about the app. Tap an example below or type your question.",
+      "genericReply": "We've received your message; someone will review it shortly.",
+      "offlineReply": "The assistant isn't available right now. For urgent help, email soporte@velle.app.",
+      "errorReply": "Could not send your message. Check your connection or use email/WhatsApp.",
+      "faqExamples": "Frequently asked questions",
+      "chatPlaceholder": "Type your question...",
+      "suggestions": [
+        "What is Velle?",
+        "How do I sign up or log in?",
+        "Is the app secure?",
+        "How do I reach human support?",
+        "Does the assistant give financial advice?"
+      ]
+    }
   },
   "twoFA": {
     "disable": "Disable 2FA",

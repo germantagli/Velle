@@ -253,7 +253,22 @@
     "faq": "Domande frequenti",
     "contactSupport": "Contatta supporto",
     "footer": "Velle - Piattaforma Finanziaria",
-    "version": "Versione 1.0.0"
+    "version": "Versione 1.0.0",
+    "ai": {
+      "welcome": "Ciao, sono l'assistente virtuale di Velle. Rispondo solo su come usare l'app. Tocca un esempio sotto o scrivi la tua domanda.",
+      "genericReply": "Abbiamo ricevuto il messaggio; un operatore lo esaminerà a breve.",
+      "offlineReply": "L'assistente non è disponibile. Per urgenze, scrivi a soporte@velle.app.",
+      "errorReply": "Impossibile inviare il messaggio. Controlla la connessione o usa email/WhatsApp.",
+      "faqExamples": "Domande frequenti",
+      "chatPlaceholder": "Scrivi la tua domanda...",
+      "suggestions": [
+        "Cos'è Velle?",
+        "Come creo un account o accedo?",
+        "L'app è sicura?",
+        "Come contatto il supporto umano?",
+        "L'assistente dà consigli finanziari?"
+      ]
+    }
   },
   "twoFA": {
     "disable": "Disattiva 2FA",

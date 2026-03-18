@@ -253,7 +253,22 @@
     "version": "Versión 1.0.0",
     "understood": "Entendido",
     "emailError": "No se pudo abrir el correo",
-    "faqContent": "¿Cómo agrego bolívares? Ve a Agregar VES, ingresa el monto y realiza el pago móvil con la referencia.\n\n¿Cómo transfiero a otro usuario? Ve a Transferir y busca por nombre, email o teléfono.\n\n¿Cómo cambio mi contraseña? Perfil → Seguridad → Cambiar contraseña."
+    "faqContent": "¿Cómo agrego bolívares? Ve a Agregar VES, ingresa el monto y realiza el pago móvil con la referencia.\n\n¿Cómo transfiero a otro usuario? Ve a Transferir y busca por nombre, email o teléfono.\n\n¿Cómo cambio mi contraseña? Perfil → Seguridad → Cambiar contraseña.",
+    "ai": {
+      "welcome": "Hola, soy tu asistente virtual de Velle. Solo respondo dudas sobre la app. Toca un ejemplo abajo o escribe tu pregunta.",
+      "genericReply": "He recibido tu mensaje; un asesor lo revisará en breve.",
+      "offlineReply": "El asistente no está disponible ahora. Si es urgente, escríbenos a soporte@velle.app.",
+      "errorReply": "No se pudo enviar tu mensaje. Revisa tu conexión o usa correo/WhatsApp.",
+      "faqExamples": "Preguntas frecuentes",
+      "chatPlaceholder": "Escribe tu pregunta...",
+      "suggestions": [
+        "¿Qué es Velle?",
+        "¿Cómo creo cuenta o inicio sesión?",
+        "¿Es segura la app?",
+        "¿Cómo contacto con soporte humano?",
+        "¿El asistente da consejos financieros?"
+      ]
+    }
   },
   "twoFA": {
     "disable": "Desactivar 2FA",

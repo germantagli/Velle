@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { SupportAiService } from './support-ai.service';
-import { AiChatDto } from './dto/ai-chat.dto';
+import {Body, Controller, Get, Post, Query} from '@nestjs/common';
+import {SupportAiService} from './support-ai.service';
+import {AiChatDto} from './dto/ai-chat.dto';
+import {getFaqItems, normalizeSupportLocale} from './velle-app-knowledge';
 
 @Controller('support')
 export class SupportController {
@@ -8,8 +9,19 @@ export class SupportController {
 
   @Post('ai-chat')
   async aiChat(@Body() body: AiChatDto) {
-    const reply = await this.ai.reply(body.message);
-    return { reply };
+    const locale = normalizeSupportLocale(body.locale);
+    const reply = await this.ai.reply(body.message, locale);
+    return {reply, locale};
+  }
+
+  /** Preguntas de ejemplo según idioma (?locale=en). */
+  @Get('ai-suggestions')
+  aiSuggestions(@Query('locale') localeRaw?: string) {
+    const locale = normalizeSupportLocale(localeRaw);
+    return {
+      suggestions: getFaqItems(locale).map(({question}) => question),
+      locale,
+    };
   }
 
   /** GET: comprueba si OPENAI_API_KEY está definida en el servidor (sin mostrar el valor). */

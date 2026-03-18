@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
+import type {TFunction} from 'i18next';
 import {
   View,
   Text,
@@ -9,79 +10,136 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
-import {SUPPORT_AI_CHAT_URL} from '../../config/api';
+import {
+  SUPPORT_AI_CHAT_URL,
+  SUPPORT_AI_SUGGESTIONS_URL,
+} from '../../config/api';
+
+function readSuggestionList(t: TFunction): string[] {
+  const raw = t('support.ai.suggestions', {returnObjects: true});
+  return Array.isArray(raw) ? (raw as string[]) : [];
+}
 
 export default function SupportChatScreen(): React.JSX.Element {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
+  const appLocale = useMemo(
+    () => (i18n.language || 'es').split(/[-_]/)[0]!.toLowerCase(),
+    [i18n.language],
+  );
+
+  const i18nSuggestions = useMemo(() => readSuggestionList(t), [t, i18n.language]);
+
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>(i18nSuggestions);
   const [messages, setMessages] = useState<
     {id: string; from: 'user' | 'ai'; text: string}[]
-  >([
+  >(() => [
     {
       id: 'welcome',
       from: 'ai',
-      text: t('support.ai.welcome', {
-        defaultValue:
-          'Hola, soy tu asistente virtual de Velle. ¿En qué puedo ayudarte hoy?',
-      }),
+      text: t('support.ai.welcome'),
     },
   ]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || sending) {
-      return;
+  useEffect(() => {
+    if (i18nSuggestions.length > 0) {
+      setSuggestions(i18nSuggestions);
     }
-    const userText = input.trim();
-    const userId = `user-${Date.now()}`;
-    setInput('');
-    setMessages(prev => [...prev, {id: userId, from: 'user', text: userText}]);
-    setSending(true);
+  }, [i18n.language, i18nSuggestions]);
 
-    try {
-      const response = await fetch(SUPPORT_AI_CHAT_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({message: userText}),
-      });
-
-      let reply: string;
-      if (response.ok) {
-        const data = await response.json();
-        reply =
-          data.reply ||
-          t('support.ai.genericReply', {
-            defaultValue:
-              'He recibido tu mensaje, un asesor lo revisará en breve.',
-          });
-      } else {
-        reply = t('support.ai.offlineReply', {
-          defaultValue:
-            'Nuestro asistente inteligente no está disponible ahora mismo. Si es urgente, escríbenos a soporte@velle.app.',
-        });
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length >= 1 && prev[0]!.id === 'welcome') {
+        return [
+          {...prev[0]!, text: t('support.ai.welcome')},
+          ...prev.slice(1),
+        ];
       }
+      return prev;
+    });
+  }, [i18n.language, t]);
 
-      setMessages(prev => [
-        ...prev,
-        {id: `ai-${Date.now()}`, from: 'ai', text: reply},
-      ]);
-    } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: `ai-${Date.now()}`,
-          from: 'ai',
-          text: t('support.ai.errorReply', {
-            defaultValue:
-              'No se pudo enviar tu mensaje. Revisa tu conexión o usa correo/WhatsApp.',
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const url = `${SUPPORT_AI_SUGGESTIONS_URL}?locale=${encodeURIComponent(appLocale)}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          return;
+        }
+        const data = await res.json();
+        if (
+          !cancelled &&
+          Array.isArray(data.suggestions) &&
+          data.suggestions.length > 0
+        ) {
+          setSuggestions(data.suggestions as string[]);
+        }
+      } catch {
+        if (!cancelled && i18nSuggestions.length > 0) {
+          setSuggestions(i18nSuggestions);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [appLocale, i18nSuggestions]);
+
+  const sendWithText = useCallback(
+    async (userText: string) => {
+      const trimmed = userText.trim();
+      if (!trimmed || sending) {
+        return;
+      }
+      const userId = `user-${Date.now()}`;
+      setInput('');
+      setMessages(prev => [...prev, {id: userId, from: 'user', text: trimmed}]);
+      setSending(true);
+
+      try {
+        const response = await fetch(SUPPORT_AI_CHAT_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            message: trimmed,
+            locale: appLocale,
           }),
-        },
-      ]);
-    } finally {
-      setSending(false);
-    }
-  };
+        });
+
+        let reply: string;
+        if (response.ok) {
+          const data = await response.json();
+          reply = data.reply || t('support.ai.genericReply');
+        } else {
+          reply = t('support.ai.offlineReply');
+        }
+
+        setMessages(prev => [
+          ...prev,
+          {id: `ai-${Date.now()}`, from: 'ai', text: reply},
+        ]);
+      } catch {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            from: 'ai',
+            text: t('support.ai.errorReply'),
+          },
+        ]);
+      } finally {
+        setSending(false);
+      }
+    },
+    [sending, t, appLocale],
+  );
+
+  const sendMessage = () => sendWithText(input);
 
   return (
     <KeyboardAvoidingView
@@ -113,12 +171,29 @@ export default function SupportChatScreen(): React.JSX.Element {
             </View>
           ))}
         </ScrollView>
+        <Text style={styles.faqLabel}>{t('support.ai.faqExamples')}</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipsScroll}
+          contentContainerStyle={styles.chipsRow}
+          keyboardShouldPersistTaps="handled">
+          {suggestions.map((label, index) => (
+            <TouchableOpacity
+              key={`${label}-${index}`}
+              style={styles.chip}
+              onPress={() => sendWithText(label)}
+              disabled={sending}>
+              <Text style={styles.chipText} numberOfLines={2}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
         <View style={styles.chatInputRow}>
           <TextInput
             style={styles.chatInput}
-            placeholder={t('support.chatPlaceholder', {
-              defaultValue: 'Escribe tu pregunta...',
-            })}
+            placeholder={t('support.ai.chatPlaceholder')}
             value={input}
             onChangeText={setInput}
             multiline
@@ -176,10 +251,40 @@ const styles = StyleSheet.create({
   chatTextAi: {
     color: '#1a1a2e',
   },
+  faqLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  chipsScroll: {
+    maxHeight: 64,
+    marginBottom: 8,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 8,
+  },
+  chip: {
+    marginRight: 8,
+    maxWidth: 220,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: '#e8eef8',
+    borderWidth: 1,
+    borderColor: '#c5d4eb',
+  },
+  chipText: {
+    fontSize: 12,
+    color: '#1a3a6e',
+  },
   chatInputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginTop: 8,
+    marginTop: 4,
   },
   chatInput: {
     flex: 1,
@@ -207,4 +312,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
