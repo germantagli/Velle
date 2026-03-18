@@ -13,6 +13,7 @@ export class SupportAiService {
       // así el frontend no se rompe.
       return 'Por ahora el asistente inteligente no está disponible. Escríbenos a soporte@velle.app.';
     }
+    
 
     try {
       const completion = await this.client.responses.create({
