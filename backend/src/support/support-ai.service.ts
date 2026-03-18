@@ -3,20 +3,27 @@ import OpenAI from 'openai';
 
 @Injectable()
 export class SupportAiService {
-  private client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  private client: OpenAI | null = null;
+
+  private getClient(): OpenAI | null {
+    const key = process.env.OPENAI_API_KEY?.trim();
+    if (!key) {
+      return null;
+    }
+    if (!this.client) {
+      this.client = new OpenAI({ apiKey: key });
+    }
+    return this.client;
+  }
 
   async reply(message: string): Promise<string> {
-    if (!this.client.apiKey) {
-      // Sin API key configurada devolvemos un mensaje amable,
-      // así el frontend no se rompe.
+    const client = this.getClient();
+    if (!client) {
       return 'Por ahora el asistente inteligente no está disponible. Escríbenos a soporte@velle.app.';
     }
-    
 
     try {
-      const completion = await this.client.responses.create({
+      const completion = await client.responses.create({
         model: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
         input: `
 Eres el asistente de soporte de la app financiera Velle.
@@ -27,9 +34,6 @@ Pregunta del usuario: "${message}"
         `.trim(),
       });
 
-      // El SDK nuevo usa una estructura algo compleja; para evitar
-      // problemas de tipos en tiempo de compilación, navegamos la
-      // respuesta como any y extraemos el primer texto disponible.
       const anyCompletion = completion as any;
       const firstOutput = anyCompletion.output?.[0];
       const firstContent = firstOutput?.content?.[0];
@@ -40,9 +44,8 @@ Pregunta del usuario: "${message}"
             'He recibido tu mensaje, un asesor lo revisará en breve.';
 
       return text;
-    } catch (e) {
+    } catch {
       throw new InternalServerErrorException('AI chat error');
     }
   }
 }
-
