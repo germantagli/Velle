@@ -21,6 +21,7 @@ import {DwollaModule} from './dwolla/dwolla.module';
 import {WithdrawalUsaModule} from './withdrawal-usa/withdrawal-usa.module';
 import {WebhooksModule} from './webhooks/webhooks.module';
 import {AppController} from './app.controller';
+import {SupportModule} from './support/support.module';
 
 @Module({
   controllers: [AppController],
@@ -45,6 +46,7 @@ import {AppController} from './app.controller';
     DwollaModule,
     WithdrawalUsaModule,
     WebhooksModule,
+    SupportModule,
   ],
   providers: [
     {provide: APP_GUARD, useClass: ThrottlerGuard},
