@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { SupportAiService } from './support-ai.service';
 import { AiChatDto } from './dto/ai-chat.dto';
 
@@ -10,6 +10,12 @@ export class SupportController {
   async aiChat(@Body() body: AiChatDto) {
     const reply = await this.ai.reply(body.message);
     return { reply };
+  }
+
+  /** GET: comprueba si OPENAI_API_KEY está definida en el servidor (sin mostrar el valor). */
+  @Get('ai-ready')
+  aiReady() {
+    return {openaiConfigured: this.ai.isOpenAiConfigured()};
   }
 }
 

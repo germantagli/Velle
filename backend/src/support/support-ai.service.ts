@@ -5,8 +5,24 @@ import OpenAI from 'openai';
 export class SupportAiService {
   private client: OpenAI | null = null;
 
+  /** Lee la clave (Railway a veces guarda comillas o espacios al pegar). */
+  private static readOpenAiKey(): string | undefined {
+    const raw = process.env.OPENAI_API_KEY;
+    if (raw == null || typeof raw !== 'string') {
+      return undefined;
+    }
+    let key = raw.trim();
+    if (
+      (key.startsWith('"') && key.endsWith('"')) ||
+      (key.startsWith("'") && key.endsWith("'"))
+    ) {
+      key = key.slice(1, -1).trim();
+    }
+    return key.length > 0 ? key : undefined;
+  }
+
   private getClient(): OpenAI | null {
-    const key = process.env.OPENAI_API_KEY?.trim();
+    const key = SupportAiService.readOpenAiKey();
     if (!key) {
       return null;
     }
@@ -47,5 +63,10 @@ Pregunta del usuario: "${message}"
     } catch {
       throw new InternalServerErrorException('AI chat error');
     }
+  }
+
+  /** Para comprobar en producción si la variable llega al contenedor (sin exponer la clave). */
+  isOpenAiConfigured(): boolean {
+    return !!SupportAiService.readOpenAiKey();
   }
 }
