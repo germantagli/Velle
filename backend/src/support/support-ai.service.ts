@@ -27,14 +27,19 @@ Pregunta del usuario: "${message}"
         `.trim(),
       });
 
-      const output = completion.output[0];
-      const first = output.content[0];
+      // El SDK nuevo usa una estructura algo compleja; para evitar
+      // problemas de tipos en tiempo de compilación, navegamos la
+      // respuesta como any y extraemos el primer texto disponible.
+      const anyCompletion = completion as any;
+      const firstOutput = anyCompletion.output?.[0];
+      const firstContent = firstOutput?.content?.[0];
+      const text =
+        firstContent?.type === 'output_text'
+          ? firstContent.text
+          : firstContent?.text ??
+            'He recibido tu mensaje, un asesor lo revisará en breve.';
 
-      if (first.type === 'output_text') {
-        return first.text;
-      }
-
-      return 'He recibido tu mensaje, un asesor lo revisará en breve.';
+      return text;
     } catch (e) {
       throw new InternalServerErrorException('AI chat error');
     }
