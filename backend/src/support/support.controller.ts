@@ -17,5 +17,11 @@ export class SupportController {
   aiReady() {
     return {openaiConfigured: this.ai.isOpenAiConfigured()};
   }
+
+  /** Diagnóstico: nombres de env que contienen "openai" y longitud de clave (sin valor). */
+  @Get('ai-env-debug')
+  aiEnvDebug() {
+    return this.ai.aiEnvDebug();
+  }
 }
 

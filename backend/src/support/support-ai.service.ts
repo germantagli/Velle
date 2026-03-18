@@ -1,13 +1,14 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 
 @Injectable()
 export class SupportAiService {
   private client: OpenAI | null = null;
 
-  /** Lee la clave (Railway a veces guarda comillas o espacios al pegar). */
-  private static readOpenAiKey(): string | undefined {
-    const raw = process.env.OPENAI_API_KEY;
+  constructor(private readonly config: ConfigService) {}
+
+  private normalizeKey(raw: string | undefined): string | undefined {
     if (raw == null || typeof raw !== 'string') {
       return undefined;
     }
@@ -21,8 +22,25 @@ export class SupportAiService {
     return key.length > 0 ? key : undefined;
   }
 
+  /** Prueba todas las fuentes habituales (Railway, .env, nombres mal escritos). */
+  private readOpenAiKey(): string | undefined {
+    const candidates = [
+      this.config.get<string>('OPENAI_API_KEY'),
+      process.env.OPENAI_API_KEY,
+      process.env['OPENAI API KEY'],
+      process.env.OPENAI_KEY,
+    ];
+    for (const raw of candidates) {
+      const key = this.normalizeKey(raw);
+      if (key) {
+        return key;
+      }
+    }
+    return undefined;
+  }
+
   private getClient(): OpenAI | null {
-    const key = SupportAiService.readOpenAiKey();
+    const key = this.readOpenAiKey();
     if (!key) {
       return null;
     }
@@ -40,7 +58,10 @@ export class SupportAiService {
 
     try {
       const completion = await client.responses.create({
-        model: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
+        model:
+          this.config.get<string>('OPENAI_MODEL') ??
+          process.env.OPENAI_MODEL ??
+          'gpt-4.1-mini',
         input: `
 Eres el asistente de soporte de la app financiera Velle.
 Responde en español, breve y claro. Si la pregunta es sobre
@@ -65,8 +86,27 @@ Pregunta del usuario: "${message}"
     }
   }
 
-  /** Para comprobar en producción si la variable llega al contenedor (sin exponer la clave). */
   isOpenAiConfigured(): boolean {
-    return !!SupportAiService.readOpenAiKey();
+    return !!this.readOpenAiKey();
+  }
+
+  /** Diagnóstico: qué variables OPENAI ve el proceso (sin exponer secretos). */
+  aiEnvDebug(): {
+    envKeysMatchingOpenai: string[];
+    openaiApiKeyLength: number;
+    fromConfigLength: number;
+  } {
+    const envKeysMatchingOpenai = Object.keys(process.env).filter(k =>
+      /openai/i.test(k),
+    );
+    const fromProcess = this.normalizeKey(process.env.OPENAI_API_KEY);
+    const fromConfig = this.normalizeKey(
+      this.config.get<string>('OPENAI_API_KEY'),
+    );
+    return {
+      envKeysMatchingOpenai,
+      openaiApiKeyLength: fromProcess?.length ?? 0,
+      fromConfigLength: fromConfig?.length ?? 0,
+    };
   }
 }
