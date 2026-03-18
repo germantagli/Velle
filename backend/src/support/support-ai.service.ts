@@ -1,9 +1,14 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 
 @Injectable()
 export class SupportAiService {
+  private readonly logger = new Logger(SupportAiService.name);
   private client: OpenAI | null = null;
 
   constructor(private readonly config: ConfigService) {}
@@ -22,9 +27,10 @@ export class SupportAiService {
     return key.length > 0 ? key : undefined;
   }
 
-  /** Prueba todas las fuentes habituales (Railway, .env, nombres mal escritos). */
   private readOpenAiKey(): string | undefined {
     const candidates = [
+      this.config.get<string>('VELLE_OPENAI_API_KEY'),
+      process.env.VELLE_OPENAI_API_KEY,
       this.config.get<string>('OPENAI_API_KEY'),
       process.env.OPENAI_API_KEY,
       process.env['OPENAI API KEY'],
@@ -50,38 +56,45 @@ export class SupportAiService {
     return this.client;
   }
 
+  private getModel(): string {
+    const m =
+      this.config.get<string>('OPENAI_MODEL')?.trim() ||
+      process.env.OPENAI_MODEL?.trim();
+    if (m && m.length > 0) {
+      return m;
+    }
+    return 'gpt-4o-mini';
+  }
+
   async reply(message: string): Promise<string> {
     const client = this.getClient();
     if (!client) {
       return 'Por ahora el asistente inteligente no está disponible. Escríbenos a soporte@velle.app.';
     }
 
-    try {
-      const completion = await client.responses.create({
-        model:
-          this.config.get<string>('OPENAI_MODEL') ??
-          process.env.OPENAI_MODEL ??
-          'gpt-4.1-mini',
-        input: `
-Eres el asistente de soporte de la app financiera Velle.
-Responde en español, breve y claro. Si la pregunta es sobre
-funciones que la app aún no tiene, explícalo con transparencia.
+    const model = this.getModel();
+    const systemPrompt = `Eres el asistente de soporte de la app financiera Velle.
+Responde en español, breve y claro. Si la pregunta es sobre funciones que la app aún no tiene, explícalo con transparencia.`;
 
-Pregunta del usuario: "${message}"
-        `.trim(),
+    try {
+      const completion = await client.chat.completions.create({
+        model,
+        messages: [
+          {role: 'system', content: systemPrompt},
+          {role: 'user', content: message},
+        ],
+        max_tokens: 800,
       });
 
-      const anyCompletion = completion as any;
-      const firstOutput = anyCompletion.output?.[0];
-      const firstContent = firstOutput?.content?.[0];
-      const text =
-        firstContent?.type === 'output_text'
-          ? firstContent.text
-          : firstContent?.text ??
-            'He recibido tu mensaje, un asesor lo revisará en breve.';
-
+      const text = completion.choices[0]?.message?.content?.trim();
+      if (!text) {
+        this.logger.warn('OpenAI returned empty content');
+        return 'No pude generar una respuesta. Inténtalo de nuevo o escríbenos a soporte@velle.app.';
+      }
       return text;
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`OpenAI chat failed (model=${model}): ${msg}`);
       throw new InternalServerErrorException('AI chat error');
     }
   }
@@ -90,22 +103,24 @@ Pregunta del usuario: "${message}"
     return !!this.readOpenAiKey();
   }
 
-  /** Diagnóstico: qué variables OPENAI ve el proceso (sin exponer secretos). */
   aiEnvDebug(): {
     envKeysMatchingOpenai: string[];
     openaiApiKeyLength: number;
+    velleOpenaiApiKeyLength: number;
     fromConfigLength: number;
   } {
     const envKeysMatchingOpenai = Object.keys(process.env).filter(k =>
       /openai/i.test(k),
     );
     const fromProcess = this.normalizeKey(process.env.OPENAI_API_KEY);
+    const fromVelle = this.normalizeKey(process.env.VELLE_OPENAI_API_KEY);
     const fromConfig = this.normalizeKey(
       this.config.get<string>('OPENAI_API_KEY'),
     );
     return {
       envKeysMatchingOpenai,
       openaiApiKeyLength: fromProcess?.length ?? 0,
+      velleOpenaiApiKeyLength: fromVelle?.length ?? 0,
       fromConfigLength: fromConfig?.length ?? 0,
     };
   }
