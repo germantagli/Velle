@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {useTranslation} from 'react-i18next';
 import {
   View,
@@ -8,29 +8,15 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {ProfileStackParamList} from '../../navigation/ProfileStack';
 
 export default function SupportScreen(): React.JSX.Element {
   const {t} = useTranslation();
-  const [chatOpen, setChatOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [messages, setMessages] = useState<
-    {id: string; from: 'user' | 'ai'; text: string}[]
-  >([
-    {
-      id: 'welcome',
-      from: 'ai',
-      text: t('support.ai.welcome', {
-        defaultValue:
-          'Hola, soy tu asistente virtual de Velle. ¿En qué puedo ayudarte hoy?',
-      }),
-    },
-  ]);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
 
   const handleEmail = () => {
     Linking.openURL('mailto:soporte@velle.app').catch(() => {
@@ -58,71 +44,13 @@ export default function SupportScreen(): React.JSX.Element {
   };
 
   const handleOpenChat = () => {
-    setChatOpen(true);
-  };
-
-  const sendMessage = async () => {
-    if (!input.trim() || sending) {
-      return;
-    }
-    const userText = input.trim();
-    const userId = `user-${Date.now()}`;
-    setInput('');
-    setMessages(prev => [...prev, {id: userId, from: 'user', text: userText}]);
-    setSending(true);
-
-    try {
-      const response = await fetch('https://api.velle.app/support/ai-chat', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({message: userText}),
-      });
-
-      let reply: string;
-      if (response.ok) {
-        const data = await response.json();
-        reply =
-          data.reply ||
-          t('support.ai.genericReply', {
-            defaultValue:
-              'He recibido tu mensaje, un asesor lo revisará en breve.',
-          });
-      } else {
-        reply = t('support.ai.offlineReply', {
-          defaultValue:
-            'Nuestro asistente inteligente no está disponible ahora mismo. Si es urgente, escríbenos a soporte@velle.app.',
-        });
-      }
-
-      setMessages(prev => [
-        ...prev,
-        {id: `ai-${Date.now()}`, from: 'ai', text: reply},
-      ]);
-    } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: `ai-${Date.now()}`,
-          from: 'ai',
-          text: t('support.ai.errorReply', {
-            defaultValue:
-              'No se pudo enviar tu mensaje. Revisa tu conexión o usa correo/WhatsApp.',
-          }),
-        },
-      ]);
-    } finally {
-      setSending(false);
-    }
+    navigation.navigate('SupportChat');
   };
 
   return (
-    <KeyboardAvoidingView
+    <ScrollView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled">
+      contentContainerStyle={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             {t('support.title', {defaultValue: '¿Necesitas ayuda?'})}
@@ -179,60 +107,6 @@ export default function SupportScreen(): React.JSX.Element {
           <Text style={styles.cardArrow}>›</Text>
         </TouchableOpacity>
 
-        {chatOpen && (
-          <View style={styles.chatBox}>
-            <Text style={styles.chatTitle}>
-              {t('support.chatTitle', {defaultValue: 'Asistente virtual'})}
-            </Text>
-            <ScrollView
-              style={styles.chatMessages}
-              contentContainerStyle={styles.chatMessagesContent}
-              keyboardShouldPersistTaps="handled">
-              {messages.map(msg => (
-                <View
-                  key={msg.id}
-                  style={[
-                    styles.chatBubble,
-                    msg.from === 'user'
-                      ? styles.chatBubbleUser
-                      : styles.chatBubbleAi,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.chatText,
-                      msg.from === 'user'
-                        ? styles.chatTextUser
-                        : styles.chatTextAi,
-                    ]}>
-                    {msg.text}
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
-            <View style={styles.chatInputRow}>
-              <TextInput
-                style={styles.chatInput}
-                placeholder={t('support.chatPlaceholder', {
-                  defaultValue: 'Escribe tu pregunta...',
-                })}
-                value={input}
-                onChangeText={setInput}
-                multiline
-              />
-              <TouchableOpacity
-                style={styles.chatSendButton}
-                onPress={sendMessage}
-                disabled={sending}>
-                {sending ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.chatSendText}>➤</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             {t('support.footer', {
@@ -245,7 +119,6 @@ export default function SupportScreen(): React.JSX.Element {
           </Text>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 
@@ -276,76 +149,4 @@ const styles = StyleSheet.create({
   footer: {marginTop: 32, alignItems: 'center'},
   footerText: {fontSize: 13, color: '#999'},
   footerVersion: {fontSize: 12, color: '#bbb', marginTop: 4},
-  chatBox: {
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-  },
-  chatTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a2e',
-    marginBottom: 8,
-  },
-  chatMessages: {
-    maxHeight: 220,
-  },
-  chatMessagesContent: {
-    paddingVertical: 4,
-  },
-  chatBubble: {
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 6,
-    maxWidth: '85%',
-  },
-  chatBubbleUser: {
-    marginLeft: '15%',
-    backgroundColor: '#0066CC',
-  },
-  chatBubbleAi: {
-    marginRight: '15%',
-    backgroundColor: '#f0f0f5',
-  },
-  chatText: {
-    fontSize: 13,
-  },
-  chatTextUser: {
-    color: '#fff',
-  },
-  chatTextAi: {
-    color: '#1a1a2e',
-  },
-  chatInputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginTop: 8,
-  },
-  chatInput: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 90,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 13,
-    backgroundColor: '#fafafa',
-  },
-  chatSendButton: {
-    marginLeft: 8,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0066CC',
-  },
-  chatSendText: {
-    color: '#fff',
-    fontSize: 18,
-  },
 });

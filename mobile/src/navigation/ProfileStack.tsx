@@ -7,6 +7,7 @@ import SecurityScreen from '../screens/profile/SecurityScreen';
 import TwoFAScreen from '../screens/profile/TwoFAScreen';
 import NotificationsScreen from '../screens/profile/NotificationsScreen';
 import SupportScreen from '../screens/profile/SupportScreen';
+import SupportChatScreen from '../screens/profile/SupportChatScreen';
 import LanguageScreen from '../screens/profile/LanguageScreen';
 
 export type ProfileStackParamList = {
@@ -16,6 +17,7 @@ export type ProfileStackParamList = {
   TwoFA: undefined;
   Notifications: undefined;
   Support: undefined;
+  SupportChat: undefined;
   Language: undefined;
 };
 
@@ -59,6 +61,11 @@ export default function ProfileStack(): React.JSX.Element {
         name="Support"
         component={SupportScreen}
         options={{title: t('profile.support')}}
+      />
+      <Stack.Screen
+        name="SupportChat"
+        component={SupportChatScreen}
+        options={{title: t('profile.supportChat', {defaultValue: 'Chat en vivo'})}}
       />
       <Stack.Screen
         name="Language"
