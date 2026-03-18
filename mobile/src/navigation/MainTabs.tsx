@@ -68,9 +68,9 @@ export default function MainTabs(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: Platform.OS === 'ios' ? 88 : 72,
-    paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    height: Platform.OS === 'ios' ? 84 : 64,
+    paddingTop: 6,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#eee',
@@ -81,17 +81,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   tabBarLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   tabBarItem: {
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   iconWrap: {
     marginBottom: 2,
   },
   icon: {
-    fontSize: 24,
+    fontSize: 18,
   },
   iconInactive: {
     opacity: 0.6,

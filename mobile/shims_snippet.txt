@@ -1,0 +1,24 @@
+﻿ {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); } /**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @format
+ * 
+ */
+  if (_Platform.default.OS === 'ios') {
+    _$$_REQUIRE(_dependencyMap[32], "../../Renderer/shims/ReactNative"); // Force side effects to prevent T55744311
+  }
+  var _ref = _Platform.default.OS === 'android' ? {
+      NativeHorizontalScrollViewTuple: [_AndroidHorizontalScrollViewNativeComponent.default, _AndroidHorizontalScrollContentViewNativeComponent.default],
+      NativeVerticalScrollViewTuple: [_ScrollViewNativeComponent.default, _View.default]
+    } : {
+      NativeHorizontalScrollViewTuple: [_ScrollViewNativeComponent.default, _ScrollContentViewNativeComponent.default],
+      NativeVerticalScrollViewTuple: [_ScrollViewNativeComponent.default, _ScrollContentViewNativeComponent.default]
+    },
+    NativeHorizontalScrollViewTuple = _ref.NativeHorizontalScrollViewTuple,
+    NativeVerticalScrollViewTuple = _ref.NativeVerticalScrollViewTuple;
+
+  /*
+   * iOS scroll event timing 

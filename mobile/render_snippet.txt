@@ -1,0 +1,22 @@
+﻿f.rootTag,
+      useFabric = _ref.useFabric,
+      useConcurrentRoot = _ref.useConcurrentRoot;
+    if (useFabric) {
+      _$$_REQUIRE(_dependencyMap[0], "../Renderer/shims/ReactFabric").render(element, rootTag, null, useConcurrentRoot);
+    } else {
+      _$$_REQUIRE(_dependencyMap[1], "../Renderer/shims/ReactNative").render(element, rootTag);
+    }
+  }
+  function findHostInstance_DEPRECATED(componentOrHandle) {
+    return _$$_REQUIRE(_dependencyMap[1], "../Renderer/shims/ReactNative").findHostInstance_DEPRECATED(componentOrHandle);
+  }
+  function findNodeHandle(componentOrHandle) {
+    return _$$_REQUIRE(_dependencyMap[1], "../Renderer/shims/ReactNative").findNodeHandle(componentOrHandle);
+  }
+  function dispatchCommand(handle, command, args) {
+    if (global.RN$Bridgeless === true) {
+      // Note: this function has the same implementation in the legacy and new renderer.
+      // However, evaluating the old renderer comes with some side effects.
+      return _$$_REQUIRE(_dependencyMap[0], "../Renderer/shims/ReactFabric").dispatchCommand(handle, command, args);
+    } else {
+      return _$$_REQUIRE(_dependencyMap[1], "../Renderer/shims/ReactNative").dispatchCommand(handle, command
