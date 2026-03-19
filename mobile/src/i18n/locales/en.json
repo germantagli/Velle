@@ -276,10 +276,10 @@
     "localChatDesc": "Saved FAQs on your phone. No artificial intelligence or server calls.",
     "localChat": {
       "screenTitle": "In-app help",
-      "welcome": "Saved answers only on your device (no AI). Tap a question or type words like “support”, “secure”, or “login”.",
+      "welcome": "Velle help on your device (no AI). Tap a question or type e.g. transfer, USA, VES, history…",
       "badge": "No AI",
       "chipsTitle": "Questions",
-      "placeholder": "E.g. support, Velle, password...",
+      "placeholder": "E.g. transfer, United States, VES...",
       "noMatch": "No saved answer for that. Email soporte@velle.app or use WhatsApp from the support screen."
     }
   },

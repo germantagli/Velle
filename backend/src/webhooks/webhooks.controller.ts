@@ -9,13 +9,25 @@ import {
 import {Request} from 'express';
 import {WithdrawalUsaService} from '../withdrawal-usa/withdrawal-usa.service';
 import {DwollaService} from '../dwolla/dwolla.service';
+import {KycService} from '../kyc/kyc.service';
 
 @Controller('webhooks')
 export class WebhooksController {
   constructor(
     private withdrawalUsa: WithdrawalUsaService,
     private dwollaService: DwollaService,
+    private kycService: KycService,
   ) {}
+
+  @Post('sumsub')
+  async handleSumsub(
+    @Req() req: Request,
+    @Headers('x-payload-digest') digest: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    await this.kycService.handleSumsubWebhook(body as any);
+    return {received: true};
+  }
 
   @Post('dwolla')
   async handleDwolla(

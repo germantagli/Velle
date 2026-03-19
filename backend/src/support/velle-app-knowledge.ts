@@ -52,6 +52,36 @@ export const FAQ_BY_LOCALE: Record<
       answer:
         'No. El asistente solo orienta sobre el uso de la app Velle. Para decisiones de inversión o fiscalidad, consulta a un profesional.',
     },
+    {
+      question: '¿Cómo hago una transferencia a otro usuario?',
+      answer:
+        'Ve a la pestaña Transferencias (o Inicio → Transferir). Elige enviar a un contacto, busca a la persona por nombre, email o teléfono, ingresa el monto en USDT y confirma. Asegúrate de tener saldo suficiente.',
+    },
+    {
+      question: '¿Cómo transfiero o retiro hacia Estados Unidos (EE. UU.)?',
+      answer:
+        'En Inicio usa la opción de retiro o envío a EE. UU. (icono bandera 🇺🇸). Sigue los pasos en pantalla: datos del destino, monto y confirmación. Los requisitos pueden variar; si algo falla, escribe a soporte@velle.app.',
+    },
+    {
+      question: '¿Cómo agrego bolívares (VES) a mi cuenta?',
+      answer:
+        'En Inicio pulsa Agregar VES, indica el monto y completa el pago móvil con la referencia que te indica la app. El abono puede tardar unos minutos en reflejarse.',
+    },
+    {
+      question: '¿Cómo convierto entre USDT y bolívares?',
+      answer:
+        'En Inicio entra en Convertir: elige la dirección del cambio (USDT ↔ VES), el monto y confirma. Revisa el tipo de cambio mostrado antes de aceptar.',
+    },
+    {
+      question: '¿Dónde veo el historial de mis movimientos?',
+      answer:
+        'En Inicio hay un enlace al historial de transacciones, o usa la pestaña Historial del menú inferior. Ahí verás transferencias, recargas y otros movimientos.',
+    },
+    {
+      question: '¿Cómo cambio mi contraseña?',
+      answer:
+        'Perfil → Seguridad → Cambiar contraseña. Si aún no definiste contraseña, la misma pantalla te permite crearla. Si no recuerdas la actual, usa recuperar acceso desde el inicio de sesión.',
+    },
   ],
   en: [
     {
@@ -78,6 +108,36 @@ export const FAQ_BY_LOCALE: Record<
       question: 'Does the assistant give financial advice?',
       answer:
         'No. The assistant only helps with using the Velle app. For investment or tax decisions, consult a professional.',
+    },
+    {
+      question: 'How do I transfer to another Velle user?',
+      answer:
+        'Open the Transfers tab (or Home → Transfer). Choose send to a contact, find the person by name, email or phone, enter the USDT amount and confirm. You need enough balance.',
+    },
+    {
+      question: 'How do I send or withdraw to the United States?',
+      answer:
+        'On Home use the USA withdrawal/send option (🇺🇸). Follow the on-screen steps: destination details, amount and confirm. If something fails, email soporte@velle.app.',
+    },
+    {
+      question: 'How do I add bolivars (VES) to my balance?',
+      answer:
+        'On Home tap Add VES, enter the amount and complete mobile payment with the reference shown in the app. It may take a few minutes to appear.',
+    },
+    {
+      question: 'How do I convert between USDT and bolivars?',
+      answer:
+        'On Home open Convert, pick the direction (USDT ↔ VES), amount and confirm. Check the rate shown before accepting.',
+    },
+    {
+      question: 'Where is my transaction history?',
+      answer:
+        'From Home use the link to transaction history, or open the History tab in the bottom menu.',
+    },
+    {
+      question: 'How do I change my password?',
+      answer:
+        'Profile → Security → Change password. If you never set one, you can create it there. If you forgot it, use recovery from the login screen.',
     },
   ],
   it: [
@@ -106,6 +166,36 @@ export const FAQ_BY_LOCALE: Record<
       answer:
         "No. L'assistente aiuta solo sull'uso dell'app Velle. Per investimenti o fiscalità, consulta un professionista.",
     },
+    {
+      question: 'Come trasferisco a un altro utente Velle?',
+      answer:
+        "Vai al tab Trasferimenti (o Home → Trasferisci). Scegli invio a contatto, cerca la persona per nome, email o telefono, importo in USDT e conferma. Serve saldo sufficiente.",
+    },
+    {
+      question: 'Come invio o prelevo verso gli Stati Uniti?',
+      answer:
+        "In Home usa l'opzione prelievo/invio USA (🇺🇸). Segui i passaggi: dati destinazione, importo e conferma. Per problemi scrivi a soporte@velle.app.",
+    },
+    {
+      question: 'Come aggiungo bolívares (VES)?',
+      answer:
+        "In Home tocca Aggiungi VES, importo e paga con mobile payment usando il riferimento mostrato. L'accredito può richiedere alcuni minuti.",
+    },
+    {
+      question: 'Come converto tra USDT e bolívares?',
+      answer:
+        "In Home apri Converti, scegli direzione USDT ↔ VES, importo e conferma. Controlla il tasso prima di accettare.",
+    },
+    {
+      question: 'Dove vedo lo storico delle transazioni?',
+      answer:
+        "Da Home il link allo storico, oppure il tab Cronologia nel menu in basso.",
+    },
+    {
+      question: 'Come cambio la password?',
+      answer:
+        'Profilo → Sicurezza → Cambia password. Se non l’hai mai impostata, puoi crearla lì. Se l’hai dimenticata, usa il recupero dal login.',
+    },
   ],
   pt: [
     {
@@ -132,6 +222,36 @@ export const FAQ_BY_LOCALE: Record<
       question: 'O assistente dá conselhos financeiros?',
       answer:
         'Não. O assistente só ajuda no uso do app Velle. Para investimentos ou impostos, consulte um profissional.',
+    },
+    {
+      question: 'Como transfiro para outro usuário Velle?',
+      answer:
+        'Vá em Transferências (ou Início → Transferir). Envie a um contato, busque por nome, email ou telefone, valor em USDT e confirme. Precisa de saldo.',
+    },
+    {
+      question: 'Como envio ou saco para os Estados Unidos?',
+      answer:
+        'No Início use a opção de saque/envio EUA (🇺🇸). Siga os passos: dados do destino, valor e confirmação. Dúvidas: soporte@velle.app.',
+    },
+    {
+      question: 'Como adiciono bolívares (VES)?',
+      answer:
+        'No Início toque Adicionar VES, valor e pague com pagamento móvel usando a referência do app. Pode levar alguns minutos.',
+    },
+    {
+      question: 'Como converto entre USDT e bolívares?',
+      answer:
+        'No Início abra Converter, escolha USDT ↔ VES, valor e confirme. Veja a cotação antes de aceitar.',
+    },
+    {
+      question: 'Onde vejo o histórico de transações?',
+      answer:
+        'No Início há link para o histórico, ou use a aba Histórico no menu inferior.',
+    },
+    {
+      question: 'Como altero minha senha?',
+      answer:
+        'Perfil → Segurança → Alterar senha. Se ainda não definiu senha, pode criar aí. Esqueceu? Use recuperação no login.',
     },
   ],
 };

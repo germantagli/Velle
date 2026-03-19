@@ -19,6 +19,9 @@ api.interceptors.request.use(config => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -309,9 +312,19 @@ export const kycApi = {
   submit: (documents: {type: string; url: string}[]) =>
     api.post('/kyc/submit', {documents}),
   getStatus: () =>
-    api.get<{status: string; documents: {type: string; status: string}[]}>('/kyc/status'),
+    api.get<{
+      status: string;
+      documents: {type: string; status: string}[];
+      sumsubConfigured?: boolean;
+    }>('/kyc/status'),
+  /** Inicia verificación automatizada con Sumsub (documentos + selfie + liveness) */
+  initVerification: () =>
+    api.post<{
+      accessToken: string | null;
+      applicantId: string | null;
+      status: string;
+      message?: string;
+    }>('/kyc/init-verification'),
   uploadDocument: (type: string, formData: FormData) =>
-    api.post(`/kyc/upload/${type}`, formData, {
-      headers: {'Content-Type': 'multipart/form-data'},
-    }),
+    api.post<{url: string}>(`/kyc/upload/${type}`, formData),
 };

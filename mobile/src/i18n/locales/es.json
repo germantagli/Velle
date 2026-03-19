@@ -276,10 +276,10 @@
     "localChatDesc": "Respuestas frecuentes en el teléfono. No usa inteligencia artificial ni llamadas al servidor.",
     "localChat": {
       "screenTitle": "Ayuda en la app",
-      "welcome": "Solo respuestas guardadas en tu móvil (sin IA). Toca una pregunta o escribe palabras como «soporte», «seguridad» o «cuenta».",
+      "welcome": "Respuestas sobre Velle en tu móvil (sin IA). Toca una pregunta o escribe, por ejemplo: transferencia, EE. UU., VES, historial…",
       "badge": "Sin IA",
       "chipsTitle": "Preguntas",
-      "placeholder": "Ej.: soporte, Velle, contraseña...",
+      "placeholder": "Ej.: transferencia, Estados Unidos, VES...",
       "noMatch": "No hay una respuesta guardada para eso. Escríbenos a soporte@velle.app o usa WhatsApp desde aquí arriba."
     }
   },

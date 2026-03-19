@@ -276,10 +276,10 @@
     "localChatDesc": "FAQ salvate sul telefono. Nessuna IA né chiamate al server.",
     "localChat": {
       "screenTitle": "Aiuto nell'app",
-      "welcome": "Solo risposte salvate sul dispositivo (senza IA). Tocca una domanda o scrivi parole come «supporto», «sicuro», «account».",
+      "welcome": "Aiuto Velle sul dispositivo (senza IA). Tocca una domanda o scrivi: bonifico, USA, VES, cronologia…",
       "badge": "Senza IA",
       "chipsTitle": "Domande",
-      "placeholder": "Es.: supporto, Velle, password...",
+      "placeholder": "Es.: bonifico, Stati Uniti, VES...",
       "noMatch": "Nessuna risposta salvata. Scrivi a soporte@velle.app o usa WhatsApp dalla schermata supporto."
     }
   },
