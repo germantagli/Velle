@@ -15,6 +15,7 @@ import {
 import {PasswordInput} from '../../components/PasswordInput';
 import {useAuthStore} from '../../store/authStore';
 import {authApi, userApi} from '../../services/api';
+import {TWO_FA_ENABLED} from '../../config/features';
 
 export default function SecurityScreen({navigation}: any): React.JSX.Element {
   const {t} = useTranslation();
@@ -137,11 +138,22 @@ export default function SecurityScreen({navigation}: any): React.JSX.Element {
             <Text style={styles.buttonText}>{t('security.updatePassword')}</Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.linkBtn}
-          onPress={() => navigation.navigate('TwoFA')}>
-          <Text style={styles.linkBtnText}>{t('security.setup2FA')}</Text>
-        </TouchableOpacity>
+        {TWO_FA_ENABLED ? (
+          <TouchableOpacity
+            style={styles.linkBtn}
+            onPress={() => navigation.navigate('TwoFA')}>
+            <Text style={styles.linkBtnText}>{t('security.setup2FA')}</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.twoFAPlaceholder}>
+            <Text style={styles.twoFATitleRow}>
+              {t('security.setup2FA').replace(/\s*›\s*$/, '')}
+            </Text>
+            <Text style={styles.twoFASubtitleRow}>
+              {t('common.comingSoon')}
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -173,4 +185,22 @@ const styles = StyleSheet.create({
   buttonText: {color: '#fff', fontSize: 16, fontWeight: '600'},
   linkBtn: {paddingVertical: 12},
   linkBtnText: {fontSize: 15, color: '#0066CC', fontWeight: '500'},
+  twoFAPlaceholder: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  twoFATitleRow: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#333',
+  },
+  twoFASubtitleRow: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+    fontWeight: '500',
+  },
 });

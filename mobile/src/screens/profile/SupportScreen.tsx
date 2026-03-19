@@ -13,6 +13,9 @@ import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import type {ProfileStackParamList} from '../../navigation/ProfileStack';
 
+/** v1: chat con IA desactivado; pon `true` cuando quieras mostrarlo de nuevo. */
+const SUPPORT_AI_CHAT_ENABLED = false;
+
 export default function SupportScreen(): React.JSX.Element {
   const {t} = useTranslation();
   const navigation =
@@ -43,8 +46,8 @@ export default function SupportScreen(): React.JSX.Element {
     });
   };
 
-  const handleOpenChat = () => {
-    navigation.navigate('SupportChat');
+  const handleOpenLocalChat = () => {
+    navigation.navigate('SupportLocalChat');
   };
 
   return (
@@ -89,23 +92,65 @@ export default function SupportScreen(): React.JSX.Element {
           <Text style={styles.cardArrow}>›</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={handleOpenChat}>
-          <Text style={styles.cardEmoji}>🤖</Text>
+        <TouchableOpacity style={styles.card} onPress={handleOpenLocalChat}>
+          <Text style={styles.cardEmoji}>📋</Text>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>
-              {t('support.liveChatTitle', {
-                defaultValue: 'Chat en vivo (IA)',
+              {t('support.localChatTitle', {
+                defaultValue: 'Ayuda rápida (sin IA)',
               })}
             </Text>
             <Text style={styles.cardDesc}>
-              {t('support.liveChatDesc', {
+              {t('support.localChatDesc', {
                 defaultValue:
-                  'Habla con un asistente inteligente 24/7 para resolver dudas al instante.',
+                  'Preguntas frecuentes guardadas en la app. No usa internet ni inteligencia artificial.',
               })}
             </Text>
           </View>
           <Text style={styles.cardArrow}>›</Text>
         </TouchableOpacity>
+
+        {SUPPORT_AI_CHAT_ENABLED ? (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('SupportChat')}>
+            <Text style={styles.cardEmoji}>🤖</Text>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>
+                {t('support.liveChatTitle', {
+                  defaultValue: 'Chat con asistente (IA)',
+                })}
+              </Text>
+              <Text style={styles.cardDesc}>
+                {t('support.liveChatDesc', {
+                  defaultValue:
+                    'Requiere conexión y servicio activo. Responde con inteligencia artificial.',
+                })}
+              </Text>
+            </View>
+            <Text style={styles.cardArrow}>›</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.card, styles.cardDisabled, styles.cardDisabledRow]}>
+            <Text style={[styles.cardEmoji, styles.cardEmojiMuted]}>🤖</Text>
+            <View style={styles.cardContent}>
+              <Text style={[styles.cardTitle, styles.cardTitleMuted]}>
+                {t('support.liveChatTitle', {
+                  defaultValue: 'Chat con asistente (IA)',
+                })}
+              </Text>
+              <Text style={styles.cardSubtitleSoon}>
+                {t('common.comingSoon')}
+              </Text>
+              <Text style={[styles.cardDesc, styles.cardDescMuted]}>
+                {t('support.liveChatDesc', {
+                  defaultValue:
+                    'Requiere conexión y servicio activo. Responde con inteligencia artificial.',
+                })}
+              </Text>
+            </View>
+          </View>
+        )}
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
@@ -146,6 +191,17 @@ const styles = StyleSheet.create({
   cardTitle: {fontSize: 16, fontWeight: '600', color: '#1a1a2e'},
   cardDesc: {fontSize: 13, color: '#666'},
   cardArrow: {fontSize: 20, color: '#999', marginLeft: 8},
+  cardDisabled: {opacity: 0.85, backgroundColor: '#f8f8f8'},
+  cardDisabledRow: {alignItems: 'flex-start'},
+  cardEmojiMuted: {opacity: 0.45, marginTop: 2},
+  cardTitleMuted: {color: '#888'},
+  cardSubtitleSoon: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  cardDescMuted: {color: '#aaa', marginTop: 8},
   footer: {marginTop: 32, alignItems: 'center'},
   footerText: {fontSize: 13, color: '#999'},
   footerVersion: {fontSize: 12, color: '#bbb', marginTop: 4},

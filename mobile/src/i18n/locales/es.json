@@ -9,7 +9,8 @@
     "select": "Seleccionar",
     "loading": "Cargando...",
     "user": "Usuario",
-    "send": "Enviar"
+    "send": "Enviar",
+    "comingSoon": "Próximamente"
   },
   "app": {
     "tagline": "Plataforma Financiera Venezuela"
@@ -73,6 +74,7 @@
     "kyc": "Verificación KYC",
     "security": "Seguridad",
     "twoFA": "2FA (verificación en dos pasos)",
+    "twoFAComingSoon": "Próximamente",
     "notifications": "Notificaciones",
     "support": "Soporte / Ayuda",
     "language": "Idioma"
@@ -268,6 +270,17 @@
         "¿Cómo contacto con soporte humano?",
         "¿El asistente da consejos financieros?"
       ]
+    },
+    "aiChatComingSoon": "Próximamente",
+    "localChatTitle": "Ayuda rápida (sin IA)",
+    "localChatDesc": "Respuestas frecuentes en el teléfono. No usa inteligencia artificial ni llamadas al servidor.",
+    "localChat": {
+      "screenTitle": "Ayuda en la app",
+      "welcome": "Solo respuestas guardadas en tu móvil (sin IA). Toca una pregunta o escribe palabras como «soporte», «seguridad» o «cuenta».",
+      "badge": "Sin IA",
+      "chipsTitle": "Preguntas",
+      "placeholder": "Ej.: soporte, Velle, contraseña...",
+      "noMatch": "No hay una respuesta guardada para eso. Escríbenos a soporte@velle.app o usa WhatsApp desde aquí arriba."
     }
   },
   "twoFA": {

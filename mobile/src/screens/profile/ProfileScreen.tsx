@@ -10,6 +10,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useAuthStore} from '../../store/authStore';
+import {TWO_FA_ENABLED} from '../../config/features';
 
 export default function ProfileScreen(): React.JSX.Element {
   const {t} = useTranslation();
@@ -71,12 +72,24 @@ export default function ProfileScreen(): React.JSX.Element {
           <Text style={styles.menuText}>{t('profile.security')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('TwoFA')}>
-          <Text style={styles.menuText}>{t('profile.twoFA')}</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
+        {TWO_FA_ENABLED ? (
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('TwoFA')}>
+            <Text style={styles.menuText}>{t('profile.twoFA')}</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.menuItem, styles.menuItem2FADisabled]}>
+            <View style={styles.menuItemTextCol}>
+              <Text style={styles.menuText}>{t('profile.twoFA')}</Text>
+              <Text style={styles.menuItemSubtitle}>
+                {t('common.comingSoon')}
+              </Text>
+            </View>
+            <Text style={styles.menuArrow}>›</Text>
+          </View>
+        )}
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('Notifications')}>
@@ -142,6 +155,17 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   menuText: {fontSize: 16, color: '#333'},
+  menuItemTextCol: {flex: 1},
+  menuItemSubtitle: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  /** Fondo gris típico de deshabilitado; el texto igual que el resto del menú. */
+  menuItem2FADisabled: {
+    backgroundColor: '#f0f0f0',
+  },
   menuArrow: {fontSize: 18, color: '#999'},
   logoutBtn: {
     marginTop: 24,

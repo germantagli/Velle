@@ -9,7 +9,8 @@
     "select": "Select",
     "loading": "Loading...",
     "user": "User",
-    "send": "Send"
+    "send": "Send",
+    "comingSoon": "Coming soon"
   },
   "app": {
     "tagline": "Venezuela Financial Platform"
@@ -73,6 +74,7 @@
     "kyc": "KYC Verification",
     "security": "Security",
     "twoFA": "2FA (two-step verification)",
+    "twoFAComingSoon": "Coming soon",
     "notifications": "Notifications",
     "support": "Support / Help",
     "language": "Language"
@@ -268,6 +270,17 @@
         "How do I reach human support?",
         "Does the assistant give financial advice?"
       ]
+    },
+    "aiChatComingSoon": "Coming soon",
+    "localChatTitle": "Quick help (no AI)",
+    "localChatDesc": "Saved FAQs on your phone. No artificial intelligence or server calls.",
+    "localChat": {
+      "screenTitle": "In-app help",
+      "welcome": "Saved answers only on your device (no AI). Tap a question or type words like “support”, “secure”, or “login”.",
+      "badge": "No AI",
+      "chipsTitle": "Questions",
+      "placeholder": "E.g. support, Velle, password...",
+      "noMatch": "No saved answer for that. Email soporte@velle.app or use WhatsApp from the support screen."
     }
   },
   "twoFA": {

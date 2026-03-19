@@ -22,6 +22,7 @@ export default function TransferHubScreen(): React.JSX.Element {
         disabled>
         <Text style={styles.cardEmoji}>🏪</Text>
         <Text style={styles.cardTitle}>{t('transferHub.payMerchant')}</Text>
+        <Text style={styles.cardSubtitleSoon}>{t('common.comingSoon')}</Text>
         <Text style={styles.cardDesc}>{t('transferHub.payMerchantDesc')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -29,6 +30,7 @@ export default function TransferHubScreen(): React.JSX.Element {
         disabled>
         <Text style={styles.cardEmoji}>💳</Text>
         <Text style={styles.cardTitle}>{t('transferHub.virtualCard')}</Text>
+        <Text style={styles.cardSubtitleSoon}>{t('common.comingSoon')}</Text>
         <Text style={styles.cardDesc}>{t('transferHub.virtualCardDesc')}</Text>
       </TouchableOpacity>
     </View>
@@ -51,6 +53,12 @@ const styles = StyleSheet.create({
   },
   cardEmoji: {fontSize: 32, marginBottom: 12},
   cardTitle: {fontSize: 18, fontWeight: 'bold', color: '#1a1a2e'},
+  cardSubtitleSoon: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
+    fontWeight: '500',
+  },
   cardDesc: {fontSize: 14, color: '#666', marginTop: 8},
   disabled: {opacity: 0.5},
 });

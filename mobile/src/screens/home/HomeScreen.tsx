@@ -89,6 +89,9 @@ export default function HomeScreen(): React.JSX.Element {
           disabled>
           <Text style={styles.actionEmoji}>🏪</Text>
           <Text style={styles.actionLabel}>{t('home.payMerchant')}</Text>
+          <Text style={styles.actionSubtitleSoon}>
+            {t('common.comingSoon')}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionBtn}
@@ -100,7 +103,12 @@ export default function HomeScreen(): React.JSX.Element {
       <TouchableOpacity
         style={[styles.cardBtn, styles.disabled]}
         disabled>
-        <Text style={styles.cardBtnText}>💳 {t('home.viewVirtualCard')}</Text>
+        <Text style={styles.cardBtnText}>
+          💳 {t('home.viewVirtualCard')}
+        </Text>
+        <Text style={styles.cardBtnSubtitleSoon}>
+          {t('common.comingSoon')}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.historyLink}
@@ -155,6 +163,13 @@ const styles = StyleSheet.create({
   },
   actionEmoji: {fontSize: 24, marginBottom: 8},
   actionLabel: {fontSize: 13, fontWeight: '600', color: '#333'},
+  actionSubtitleSoon: {
+    fontSize: 11,
+    color: '#888',
+    marginTop: 6,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
   disabled: {opacity: 0.5},
   cardBtn: {
     backgroundColor: '#fff',
@@ -163,8 +178,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#e5e5e5',
+    alignItems: 'flex-start',
   },
   cardBtnText: {fontSize: 16, fontWeight: '600', color: '#333'},
+  cardBtnSubtitleSoon: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 6,
+    fontWeight: '500',
+  },
   historyLink: {alignItems: 'center'},
   historyLinkText: {fontSize: 14, color: '#0066CC'},
 });
