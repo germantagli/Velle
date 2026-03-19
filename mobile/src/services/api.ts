@@ -325,8 +325,20 @@ export const kycApi = {
       status: string;
       message?: string;
     }>('/kyc/init-verification'),
-  uploadDocument: (type: string, formData: FormData) =>
-    api.post<{url: string}>(`/kyc/upload/${type}`, formData, {
-      timeout: 60000,
-    }),
+  uploadDocument: async (type: string, formData: FormData): Promise<{url: string}> => {
+    const token = useAuthStore.getState().token;
+    const url = `${API_BASE_URL}/kyc/upload/${type}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...(token && {Authorization: `Bearer ${token}`}),
+      },
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Error ${res.status}`);
+    }
+    return res.json();
+  },
 };

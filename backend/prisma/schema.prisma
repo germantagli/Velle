@@ -20,6 +20,7 @@ model User {
   lastName      String   @map("last_name")
   kycStatus           KycStatus @default(PENDING) @map("kyc_status")
   kycSkipped          Boolean   @default(false) @map("kyc_skipped")
+  kycRejectionReason  String?   @map("kyc_rejection_reason")
   sumsubApplicantId   String?   @unique @map("sumsub_applicant_id")
   mfaEnabled    Boolean  @default(false) @map("mfa_enabled")
   mfaSecret     String?  @map("mfa_secret")

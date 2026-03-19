@@ -10,6 +10,12 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use('/uploads', require('express').static(join(process.cwd(), 'uploads')));
+  app.use(
+    '/admin',
+    require('express').static(join(process.cwd(), 'public', 'admin'), {
+      index: 'index.html',
+    }),
+  );
 
   app.use(
     helmet({

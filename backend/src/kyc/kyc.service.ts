@@ -14,7 +14,7 @@ export class KycService {
   async getStatus(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: {id: userId},
-      select: {kycStatus: true, sumsubApplicantId: true},
+      select: {kycStatus: true, sumsubApplicantId: true, kycRejectionReason: true},
     });
     const docs = await this.prisma.kycDocument.findMany({
       where: {userId},
@@ -22,6 +22,7 @@ export class KycService {
     });
     return {
       status: user?.kycStatus ?? 'PENDING',
+      rejectionReason: user?.kycRejectionReason ?? null,
       documents: docs.map(d => ({type: d.type, status: d.status})),
       sumsubConfigured: this.sumsub.isConfigured(),
     };

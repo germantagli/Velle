@@ -111,15 +111,16 @@ export default function KYCScreen(): React.JSX.Element {
         type: 'image/jpeg',
       } as any);
 
-      const {data} = await kycApi.uploadDocument(type, formData);
+      const data = await kycApi.uploadDocument(type, formData);
       setUploadedDocs(prev => ({...prev, [type]: data.url}));
     } catch (e: any) {
-      let msg = e.response?.data?.message || e.message || 'Error al subir';
-      if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
-        msg = 'La subida tardó demasiado. Verifica tu conexión e intenta de nuevo.';
-      } else if (e.message === 'Network Error' || !e.response) {
+      let msg = e.message || 'Error al subir';
+      if (msg.includes('Network request failed') || msg.includes('Failed to fetch')) {
         msg =
-          'No se pudo conectar al servidor. Verifica tu conexión a internet y que el backend esté activo.';
+          'No se pudo conectar. Verifica tu conexión a internet y que el backend esté activo.';
+      }
+      if (__DEV__) {
+        console.warn('KYC upload error:', e);
       }
       Alert.alert('Error', msg);
     } finally {
