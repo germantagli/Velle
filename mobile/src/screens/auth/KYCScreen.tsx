@@ -6,12 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Modal,
   Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import WebView from 'react-native-webview';
 import {launchCamera} from 'react-native-image-picker';
 import {useAuthStore} from '../../store/authStore';
 import {userApi} from '../../services/api';
@@ -26,10 +25,6 @@ const DOC_TYPES = [
 export default function KYCScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(true);
-  const [sumsubReady, setSumsubReady] = useState(false);
-  const [showSumsub, setShowSumsub] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, string>>({});
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -53,9 +48,8 @@ export default function KYCScreen(): React.JSX.Element {
         navigation.replace('Main');
         return;
       }
-      setSumsubReady(!!data.sumsubConfigured);
     } catch {
-      setSumsubReady(false);
+      // ignore
     } finally {
       setLoading(false);
     }
@@ -64,11 +58,44 @@ export default function KYCScreen(): React.JSX.Element {
   const captureAndUpload = async (type: string) => {
     setUploadingDoc(type);
     try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Permiso de cámara',
+            message: 'Velle necesita acceso a la cámara para capturar documentos.',
+            buttonPositive: 'Permitir',
+            buttonNegative: 'Cancelar',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(
+            'Permiso requerido',
+            'Necesitas permitir el acceso a la cámara para capturar documentos.',
+          );
+          setUploadingDoc(null);
+          return;
+        }
+      }
+
       const result = await launchCamera({
         mediaType: 'photo',
         cameraType: 'back',
         saveToPhotos: false,
+        quality: 0.7,
       });
+
+      if (result.errorCode) {
+        const msg =
+          result.errorMessage ||
+          (result.errorCode === 'camera_unavailable'
+            ? 'No se encontró cámara en el dispositivo.'
+            : 'No se pudo abrir la cámara.');
+        Alert.alert('Error', msg);
+        setUploadingDoc(null);
+        return;
+      }
+
       if (result.didCancel || !result.assets?.[0]?.uri) {
         setUploadingDoc(null);
         return;
@@ -87,7 +114,13 @@ export default function KYCScreen(): React.JSX.Element {
       const {data} = await kycApi.uploadDocument(type, formData);
       setUploadedDocs(prev => ({...prev, [type]: data.url}));
     } catch (e: any) {
-      const msg = e.response?.data?.message || e.message || 'Error al subir';
+      let msg = e.response?.data?.message || e.message || 'Error al subir';
+      if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
+        msg = 'La subida tardó demasiado. Verifica tu conexión e intenta de nuevo.';
+      } else if (e.message === 'Network Error' || !e.response) {
+        msg =
+          'No se pudo conectar al servidor. Verifica tu conexión a internet y que el backend esté activo.';
+      }
       Alert.alert('Error', msg);
     } finally {
       setUploadingDoc(null);
@@ -126,147 +159,6 @@ export default function KYCScreen(): React.JSX.Element {
     }
   };
 
-  const startSumsubVerification = async () => {
-    setVerifying(true);
-    try {
-      const {data} = await kycApi.initVerification();
-      if (data.status === 'VERIFIED') {
-        const user = useAuthStore.getState().user;
-        if (user)
-          setAuth({
-            user: {...user, kycStatus: 'VERIFIED'},
-          });
-        navigation.replace('Main');
-        return;
-      }
-      if (!data.accessToken) {
-        Alert.alert(
-          'Error',
-          data.message || 'No se pudo iniciar la verificación. Intenta más tarde.',
-        );
-        return;
-      }
-      setAccessToken(data.accessToken);
-      setShowSumsub(true);
-    } catch (e: any) {
-      const msg =
-        e.response?.data?.message || e.message || 'Error al iniciar verificación';
-      Alert.alert('Error', msg);
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleSumsubMessage = (event: {nativeEvent: {data: string}}) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      const {type} = data;
-      if (type === 'idCheck.applicantStatus' || type === 'idCheck.applicantLoaded') {
-        const status = data.payload?.reviewStatus ?? data.payload?.reviewResult?.reviewStatus;
-        if (status === 'completed' || status === 'GREEN') {
-          setShowSumsub(false);
-          const user = useAuthStore.getState().user;
-          if (user)
-            setAuth({
-              user: {...user, kycStatus: 'VERIFIED'},
-            });
-          Alert.alert(
-            'Verificación completada',
-            'Tu identidad ha sido verificada correctamente.',
-            [{text: 'Continuar', onPress: () => navigation.replace('Main')}],
-          );
-        }
-      }
-      if (type === 'idCheck.applicantSubmitted') {
-        setShowSumsub(false);
-        const user = useAuthStore.getState().user;
-        if (user)
-          setAuth({
-            user: {...user, kycStatus: 'UNDER_REVIEW'},
-          });
-        Alert.alert(
-          'Documentos enviados',
-          'Recibirás una notificación cuando se complete la verificación.',
-          [{text: 'Continuar', onPress: () => navigation.replace('Main')}],
-        );
-      }
-    } catch {
-      // ignore parse errors
-    }
-  };
-
-  const handleSumsubClose = () => {
-    setShowSumsub(false);
-    setAccessToken(null);
-    checkKycStatus();
-  };
-
-  const getSumsubHtml = () => {
-    if (!accessToken) return '';
-    const token = accessToken.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '');
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <script src="https://static.sumsub.com/idensic/static/sns-websdk-builder.js"></script>
-</head>
-<body style="margin:0;padding:0;">
-  <div id="sumsub-container" style="width:100%;height:100vh;"></div>
-  <script>
-    (function() {
-      var token = "${token}";
-      try {
-        var snsWebSdkInstance = snsWebSdk
-          .init(token, function() { return Promise.resolve(token); })
-          .withConf({ lang: 'es' })
-          .withOptions({ addViewportTag: false })
-          .on('idCheck.onStepCompleted', function(payload) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'idCheck.onStepCompleted',
-              payload: payload
-            }));
-          })
-          .on('idCheck.applicantStatus', function(payload) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'idCheck.applicantStatus',
-              payload: payload
-            }));
-          })
-          .on('idCheck.applicantSubmitted', function(payload) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'idCheck.applicantSubmitted',
-              payload: payload
-            }));
-          })
-          .on('idCheck.applicantLoaded', function(payload) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'idCheck.applicantLoaded',
-              payload: payload
-            }));
-          })
-          .on('error', function(error) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'error',
-              error: error
-            }));
-          })
-          .build();
-        snsWebSdkInstance.launch('#sumsub-container');
-      } catch (e) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'error',
-          error: String(e)
-        }));
-      }
-    })();
-  </script>
-</body>
-</html>
-    `;
-  };
-
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -285,26 +177,7 @@ export default function KYCScreen(): React.JSX.Element {
           para proteger tu cuenta.
         </Text>
 
-        {sumsubReady ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Verificación automatizada</Text>
-            <Text style={styles.cardDesc}>
-              Captura tu documento (DNI, cédula o pasaporte), toma una selfie con
-              verificación en vivo y listo. Sin esperas ni revisión manual.
-            </Text>
-            <TouchableOpacity
-              style={[styles.buttonPrimary, verifying && styles.buttonDisabled]}
-              onPress={startSumsubVerification}
-              disabled={verifying}>
-              {verifying ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonPrimaryText}>Iniciar verificación</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.card}>
+        <View style={styles.card}>
             <Text style={styles.cardTitle}>Subir documentos</Text>
             <Text style={styles.cardDesc}>
               Captura con la cámara cada documento requerido. Los enviaremos para
@@ -351,10 +224,9 @@ export default function KYCScreen(): React.JSX.Element {
               )}
             </TouchableOpacity>
           </View>
-        )}
 
         <TouchableOpacity
-          style={[styles.buttonSecondary, verifying && styles.buttonDisabled]}
+          style={[styles.buttonSecondary, submitting && styles.buttonDisabled]}
           onPress={async () => {
             setLoading(true);
             try {
@@ -371,34 +243,11 @@ export default function KYCScreen(): React.JSX.Element {
               setLoading(false);
             }
           }}
-          disabled={verifying}
+          disabled={submitting}
           activeOpacity={0.7}>
           <Text style={styles.buttonSecondaryText}>Omitir por ahora</Text>
         </TouchableOpacity>
       </View>
-
-      <Modal
-        visible={showSumsub}
-        animationType="slide"
-        onRequestClose={handleSumsubClose}>
-        <View style={[styles.modalContainer, {paddingTop: insets.top}]}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={handleSumsubClose} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-          <WebView
-            source={{html: getSumsubHtml()}}
-            style={styles.webview}
-            onMessage={handleSumsubMessage}
-            javaScriptEnabled
-            domStorageEnabled
-            mediaPlaybackRequiresUserAction={false}
-            allowsInlineMediaPlayback
-            mixedContentMode="always"
-          />
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -451,15 +300,4 @@ const styles = StyleSheet.create({
   buttonDisabled: {opacity: 0.7},
   buttonPrimaryText: {color: '#fff', fontSize: 16, fontWeight: '600'},
   buttonSecondaryText: {color: '#0066CC', fontSize: 16, fontWeight: '600'},
-  modalContainer: {flex: 1, backgroundColor: '#fff'},
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  closeBtn: {padding: 8},
-  closeBtnText: {color: '#0066CC', fontSize: 16, fontWeight: '600'},
-  webview: {flex: 1},
 });

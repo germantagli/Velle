@@ -326,5 +326,7 @@ export const kycApi = {
       message?: string;
     }>('/kyc/init-verification'),
   uploadDocument: (type: string, formData: FormData) =>
-    api.post<{url: string}>(`/kyc/upload/${type}`, formData),
+    api.post<{url: string}>(`/kyc/upload/${type}`, formData, {
+      timeout: 60000,
+    }),
 };
