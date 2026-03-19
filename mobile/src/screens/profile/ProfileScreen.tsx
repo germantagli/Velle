@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,26 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useAuthStore} from '../../store/authStore';
+import {userApi} from '../../services/api';
 import {TWO_FA_ENABLED} from '../../config/features';
 
 export default function ProfileScreen(): React.JSX.Element {
   const {t} = useTranslation();
   const navigation = useNavigation<any>();
-  const {user, logout} = useAuthStore();
+  const {user, setAuth, logout} = useAuthStore();
+
+  useEffect(() => {
+    userApi
+      .getProfile()
+      .then(r => {
+        const profile = r.data as Record<string, unknown> | undefined;
+        const currentUser = useAuthStore.getState().user;
+        if (profile && currentUser) {
+          setAuth({user: {...currentUser, ...profile}});
+        }
+      })
+      .catch(() => {});
+  }, [setAuth]);
 
   const handleLogout = () => {
     Alert.alert(t('auth.logout'), t('auth.logoutConfirm'), [
@@ -55,6 +69,14 @@ export default function ProfileScreen(): React.JSX.Element {
           <Text style={styles.menuText}>{t('profile.editProfile')}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
+        {user?.isAdmin && (
+          <TouchableOpacity
+            style={[styles.menuItem, styles.menuItemAdmin]}
+            onPress={() => navigation.navigate('AdminKYCList')}>
+            <Text style={styles.menuText}>Revisar KYC</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        )}
         {(user?.kycStatus !== 'VERIFIED' && user?.kycStatus !== 'UNDER_REVIEW') && (
           <TouchableOpacity
             style={styles.menuItem}
@@ -155,6 +177,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   menuText: {fontSize: 16, color: '#333'},
+  menuItemAdmin: {backgroundColor: '#f0f9ff'},
   menuItemTextCol: {flex: 1},
   menuItemSubtitle: {
     fontSize: 12,

@@ -325,6 +325,10 @@ export const kycApi = {
       status: string;
       message?: string;
     }>('/kyc/init-verification'),
+  /** Ver URL de visualización de un documento */
+  getDocumentViewUrl: (documentId: string) =>
+    api.get<{url: string}>(`/kyc/documents/${documentId}/view-url`),
+
   uploadDocument: async (type: string, formData: FormData): Promise<{url: string}> => {
     const token = useAuthStore.getState().token;
     const url = `${API_BASE_URL}/kyc/upload/${type}`;
@@ -341,4 +345,29 @@ export const kycApi = {
     }
     return res.json();
   },
+};
+
+// Admin (super users)
+export const adminApi = {
+  listPendingKyc: () =>
+    api.get<{users: Array<{
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      phone: string | null;
+      kycStatus: string;
+      kycRejectionReason: string | null;
+      documentCount: number;
+      createdAt: string;
+    }>}>('/admin/kyc/pending'),
+  getUserDocuments: (userId: string) =>
+    api.get<{
+      user: {id: string; email: string; firstName: string; lastName: string; phone: string | null; kycStatus: string};
+      documents: Array<{id: string; type: string; label: string; viewUrl: string; status: string; createdAt: string}>;
+    }>(`/admin/kyc/users/${userId}/documents`),
+  approveKyc: (userId: string) =>
+    api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/approve`),
+  rejectKyc: (userId: string, reason?: string) =>
+    api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/reject`, {reason}),
 };

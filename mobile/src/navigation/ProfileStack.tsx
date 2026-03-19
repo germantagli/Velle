@@ -10,6 +10,8 @@ import SupportScreen from '../screens/profile/SupportScreen';
 import SupportChatScreen from '../screens/profile/SupportChatScreen';
 import SupportLocalChatScreen from '../screens/profile/SupportLocalChatScreen';
 import LanguageScreen from '../screens/profile/LanguageScreen';
+import AdminKYCListScreen from '../screens/admin/AdminKYCListScreen';
+import AdminKYCUserDetailScreen from '../screens/admin/AdminKYCUserDetailScreen';
 
 export type ProfileStackParamList = {
   ProfileHome: undefined;
@@ -21,6 +23,8 @@ export type ProfileStackParamList = {
   SupportChat: undefined;
   SupportLocalChat: undefined;
   Language: undefined;
+  AdminKYCList: undefined;
+  AdminKYCUserDetail: {userId: string};
 };
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
@@ -78,6 +82,16 @@ export default function ProfileStack(): React.JSX.Element {
         name="Language"
         component={LanguageScreen}
         options={{title: t('language.title')}}
+      />
+      <Stack.Screen
+        name="AdminKYCList"
+        component={AdminKYCListScreen}
+        options={{title: 'Revisar KYC'}}
+      />
+      <Stack.Screen
+        name="AdminKYCUserDetail"
+        component={AdminKYCUserDetailScreen}
+        options={{title: 'Detalle KYC'}}
       />
     </Stack.Navigator>
   );

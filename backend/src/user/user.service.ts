@@ -1,9 +1,13 @@
 import {Injectable} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
 import {PrismaService} from '../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+  ) {}
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -24,9 +28,15 @@ export class UserService {
       },
     });
     if (!user) return null;
+    const adminEmails = (this.config.get<string>('ADMIN_EMAILS', '') || '')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean);
+    const isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
     return {
       ...user,
-      mfaVerified: true, // Set by JWT after MFA pass if applicable
+      isAdmin: !!isAdmin,
+      mfaVerified: true,
     };
   }
 

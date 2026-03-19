@@ -27,6 +27,7 @@ interface User {
   mfaEnabled?: boolean;
   notificationsEnabled?: boolean;
   passwordSet?: boolean;
+  isAdmin?: boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
