@@ -7,8 +7,14 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Modal,
+  Image,
+  Dimensions,
   Linking,
+  Share,
+  Platform,
 } from 'react-native';
+import {API_URL} from '../../config';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {adminApi} from '../../services/api';
@@ -22,6 +28,7 @@ export default function AdminKYCUserDetailScreen(): React.JSX.Element {
   const userId = route.params?.userId ?? '';
 
   const [actionLoading, setActionLoading] = useState<'approve' | 'reject' | null>(null);
+  const [preview, setPreview] = useState<{url: string; label: string} | null>(null);
 
   const {data, isLoading, error, refetch} = useQuery({
     queryKey: ['admin', 'kyc', 'user', userId],
@@ -93,11 +100,38 @@ export default function AdminKYCUserDetailScreen(): React.JSX.Element {
     );
   };
 
-  const openDocument = (url: string) => {
-    Linking.canOpenURL(url).then(can => {
-      if (can) Linking.openURL(url);
-      else Alert.alert('Error', 'No se puede abrir el enlace');
-    });
+  const openDocument = (url: string, label: string) => {
+    let absUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      absUrl = url.startsWith('/') ? `${API_URL}${url}` : `${API_URL}/${url}`;
+    }
+    if (!absUrl.startsWith('http')) {
+      Alert.alert('Error', 'URL de documento no disponible');
+      return;
+    }
+    setPreview({url: absUrl, label});
+  };
+
+  const fallbackToBrowser = (url: string) => {
+    setPreview(null);
+    Linking.openURL(url).catch(() =>
+      Alert.alert(
+        'No se pudo abrir',
+        '¿Compartir enlace?',
+        [
+          {text: 'Cancelar', style: 'cancel'},
+          {
+            text: 'Compartir',
+            onPress: () =>
+              Share.share({
+                url,
+                message: Platform.OS === 'android' ? url : undefined,
+                title: 'Ver documento',
+              }),
+          },
+        ],
+      ),
+    );
   };
 
   if (!userId) {
@@ -157,7 +191,7 @@ export default function AdminKYCUserDetailScreen(): React.JSX.Element {
           <TouchableOpacity
             key={doc.id}
             style={styles.docCard}
-            onPress={() => openDocument(doc.viewUrl)}
+            onPress={() => openDocument(doc.viewUrl, doc.label)}
             activeOpacity={0.7}>
             <Text style={styles.docLabel}>{doc.label}</Text>
             <Text style={styles.docType}>{doc.type}</Text>
@@ -243,6 +277,34 @@ const styles = StyleSheet.create({
   btnReject: {backgroundColor: '#dc2626'},
   btnText: {color: '#fff', fontSize: 16, fontWeight: '600'},
   errorText: {fontSize: 16, color: '#ef4444', textAlign: 'center', marginBottom: 16},
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 500,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  previewImage: {
+    width: Dimensions.get('window').width - 32,
+    height: Dimensions.get('window').height * 0.65,
+    maxWidth: 500,
+  },
+  modalHint: {
+    color: '#999',
+    fontSize: 13,
+    marginTop: 12,
+  },
   retryBtn: {
     paddingHorizontal: 24,
     paddingVertical: 12,

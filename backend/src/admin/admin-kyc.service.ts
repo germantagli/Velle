@@ -1,4 +1,6 @@
 import {Injectable, BadRequestException} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
+import * as crypto from 'crypto';
 import {PrismaService} from '../prisma/prisma.service';
 import {S3Service} from '../storage/s3.service';
 
@@ -7,6 +9,7 @@ export class AdminKycService {
   constructor(
     private prisma: PrismaService,
     private s3: S3Service,
+    private config: ConfigService,
   ) {}
 
   async listPending() {
@@ -56,15 +59,16 @@ export class AdminKycService {
       orderBy: {createdAt: 'desc'},
     });
 
+    const baseUrl =
+      (this.config.get<string>('API_BASE_URL') || '').replace(/\/$/, '') ||
+      'https://velle-developd.up.railway.app';
+    const secret =
+      this.config.get<string>('JWT_SECRET', 'change-in-production');
+
     const withViewUrls = await Promise.all(
       docs.map(async d => {
-        let viewUrl = d.url;
-        if (d.url.startsWith('s3:')) {
-          const key = d.url.replace(/^s3:/, '');
-          viewUrl = this.s3.isConfigured()
-            ? await this.s3.getSignedUrl(key, 3600)
-            : d.url;
-        }
+        const token = this.createServeToken(d.id, secret);
+        const viewUrl = `${baseUrl}/admin/kyc/documents/${d.id}/serve?t=${token}`;
         const label =
           d.type === 'id_front'
             ? 'DNI / Cédula / Pasaporte'
@@ -139,5 +143,15 @@ export class AdminKycService {
     });
 
     return {status: 'REJECTED', message: 'KYC rechazado'};
+  }
+
+  private createServeToken(docId: string, secret: string): string {
+    const exp = Date.now() + 3600 * 1000;
+    const data = {docId, exp};
+    const dataB64 = Buffer.from(JSON.stringify(data), 'utf8').toString(
+      'base64url',
+    );
+    const sig = crypto.createHmac('sha256', secret).update(dataB64).digest('base64url');
+    return `${dataB64}.${sig}`;
   }
 }

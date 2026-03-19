@@ -5,6 +5,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
+import {Readable} from 'stream';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
@@ -65,5 +66,18 @@ export class S3Service {
 
   getPublicUrl(key: string): string {
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  async getObjectBuffer(key: string): Promise<Buffer> {
+    if (!this.client) throw new Error('S3 no configurado');
+    const res = await this.client.send(
+      new GetObjectCommand({Bucket: this.bucket, Key: key}),
+    );
+    const stream = res.Body as Readable;
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
   }
 }
