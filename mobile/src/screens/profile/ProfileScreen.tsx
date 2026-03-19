@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useAuthStore} from '../../store/authStore';
 import {userApi} from '../../services/api';
@@ -18,18 +18,20 @@ export default function ProfileScreen(): React.JSX.Element {
   const navigation = useNavigation<any>();
   const {user, setAuth, logout} = useAuthStore();
 
-  useEffect(() => {
-    userApi
-      .getProfile()
-      .then(r => {
-        const profile = r.data as Record<string, unknown> | undefined;
-        const currentUser = useAuthStore.getState().user;
-        if (profile && currentUser) {
-          setAuth({user: {...currentUser, ...profile}});
-        }
-      })
-      .catch(() => {});
-  }, [setAuth]);
+  useFocusEffect(
+    React.useCallback(() => {
+      userApi
+        .getProfile()
+        .then(r => {
+          const profile = r.data as Record<string, unknown> | undefined;
+          const currentUser = useAuthStore.getState().user;
+          if (profile && currentUser) {
+            setAuth({user: {...currentUser, ...profile}});
+          }
+        })
+        .catch(() => {});
+    }, [setAuth]),
+  );
 
   const handleLogout = () => {
     Alert.alert(t('auth.logout'), t('auth.logoutConfirm'), [

@@ -58,6 +58,7 @@ export default function LoginScreen({
             kycSkipped: profile.kycSkipped,
             passwordSet: profile.passwordSet,
             mfaEnabled: profile.mfaEnabled,
+            isAdmin: !!profile.isAdmin,
           }
         : undefined;
       setAuth({

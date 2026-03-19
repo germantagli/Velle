@@ -4,6 +4,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
 import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
@@ -14,6 +15,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private config: ConfigService,
   ) {}
 
   async validateUser(contact: string, password: string) {
@@ -52,7 +54,13 @@ export class AuthService {
         passwordSet: true,
       },
     });
-    return user ?? null;
+    if (!user) return null;
+    const adminEmails = (this.config.get<string>('ADMIN_EMAILS', '') || '')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean);
+    const isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
+    return {...user, isAdmin: !!isAdmin};
   }
 
   async register(dto: {contact: string}) {
