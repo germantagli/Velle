@@ -1,12 +1,14 @@
 import {Injectable, BadRequestException} from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
 import {SumsubService} from './sumsub.service';
+import {S3Service} from '../storage/s3.service';
 
 @Injectable()
 export class KycService {
   constructor(
     private prisma: PrismaService,
     private sumsub: SumsubService,
+    private s3: S3Service,
   ) {}
 
   async getStatus(userId: string) {
@@ -107,8 +109,16 @@ export class KycService {
     userId: string,
     type: string,
     file: Express.Multer.File,
+    baseUrl: string,
   ): Promise<{url: string}> {
     const ext = file.originalname.split('.').pop() || 'jpg';
+    const key = `kyc/${userId}/${type}-${Date.now()}.${ext}`;
+
+    if (this.s3.isConfigured()) {
+      await this.s3.upload(key, file.buffer, `image/${ext}`);
+      return {url: `s3:${key}`};
+    }
+
     const filename = `kyc-${userId}-${type}-${Date.now()}.${ext}`;
     const fs = await import('fs/promises');
     const path = await import('path');
@@ -116,9 +126,20 @@ export class KycService {
     await fs.mkdir(uploadsDir, {recursive: true});
     const destPath = path.join(uploadsDir, filename);
     await fs.writeFile(destPath, file.buffer);
-    const baseUrl = process.env.API_BASE_URL || process.env.CORS_ORIGINS?.split(',')[0] || 'http://localhost:3000';
     const url = `${baseUrl.replace(/\/$/, '')}/uploads/${filename}`;
     return {url};
+  }
+
+  async getDocumentViewUrl(documentId: string, userId: string): Promise<string | null> {
+    const doc = await this.prisma.kycDocument.findFirst({
+      where: {id: documentId, userId},
+    });
+    if (!doc) return null;
+    if (doc.url.startsWith('s3:')) {
+      const key = doc.url.replace(/^s3:/, '');
+      return this.s3.getSignedUrl(key, 3600);
+    }
+    return doc.url;
   }
 
   async submitDocuments(

@@ -4,11 +4,13 @@ import {
   Post,
   Body,
   Param,
+  Req,
   UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
+import {Request} from 'express';
 import {FileInterceptor} from '@nestjs/platform-express';
 import {ApiTags, ApiBearerAuth, ApiConsumes, ApiBody} from '@nestjs/swagger';
 import {KycService} from './kyc.service';
@@ -58,13 +60,32 @@ export class KycController {
     @CurrentUser() user: {id: string},
     @Param('type') type: string,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request,
   ) {
     if (!file) throw new BadRequestException('Archivo requerido');
     const allowed = ['id_front', 'selfie', 'proof_of_address'];
     if (!allowed.includes(type)) {
       throw new BadRequestException(`Tipo debe ser: ${allowed.join(', ')}`);
     }
-    return this.kyc.uploadDocument(user.id, type, file);
+    const protocol =
+      req.get('x-forwarded-proto') || req.protocol || 'https';
+    const host = req.get('x-forwarded-host') || req.get('host') || 'localhost:3000';
+    const baseUrl =
+      process.env.API_BASE_URL ||
+      `${protocol}://${host}`.replace(/\/$/, '');
+    return this.kyc.uploadDocument(user.id, type, file, baseUrl);
+  }
+
+  @Get('documents/:id/view-url')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getDocumentViewUrl(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+  ) {
+    const url = await this.kyc.getDocumentViewUrl(id, user.id);
+    if (!url) throw new BadRequestException('Documento no encontrado');
+    return {url};
   }
 
   @Post('submit')

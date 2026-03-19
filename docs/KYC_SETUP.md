@@ -40,14 +40,31 @@ Por defecto usamos `basic-kyc-level`. En Sumsub puedes crear niveles personaliza
 - Selfie con verificación en vivo (liveness)
 - Coincidencia facial (documento vs selfie)
 
-## 5. Migración de base de datos
+## 5. Almacenamiento S3 (recomendado para Railway)
+
+En Railway el disco es efímero. Para que los documentos KYC persistan, configura AWS S3:
+
+1. Crea un bucket en [AWS S3 Console](https://console.aws.amazon.com/s3/)
+2. Crea un usuario IAM con permisos `s3:PutObject` y `s3:GetObject`
+3. Añade las variables en Railway:
+
+```env
+AWS_ACCESS_KEY_ID=xxx
+AWS_SECRET_ACCESS_KEY=xxx
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=velle-kyc-docs
+```
+
+Sin S3, los archivos se guardan en disco local (se pierden al reiniciar en Railway).
+
+## 6. Migración de base de datos
 
 ```bash
 cd backend
 npx prisma migrate deploy
 ```
 
-## Flujo
+## Flujo (subida manual con cámara)
 
 1. Usuario abre pantalla KYC
 2. Pulsa "Iniciar verificación"

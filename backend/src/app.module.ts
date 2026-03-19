@@ -22,11 +22,13 @@ import {WithdrawalUsaModule} from './withdrawal-usa/withdrawal-usa.module';
 import {WebhooksModule} from './webhooks/webhooks.module';
 import {AppController} from './app.controller';
 import {SupportModule} from './support/support.module';
+import {StorageModule} from './storage/storage.module';
 
 @Module({
   controllers: [AppController],
   imports: [
     NestConfigModule.forRoot({isGlobal: true}),
+    StorageModule,
     ThrottlerModule.forRoot([{ttl: 60000, limit: 100}]),
     PrismaModule,
     AuthModule,
