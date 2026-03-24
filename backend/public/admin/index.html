@@ -66,7 +66,7 @@
         </div>
         <div class="doc-grid" id="docGrid"></div>
         <div class="actions">
-          <button class="btn btn-success" onclick="approve()">✓ Aprobar</button>
+          <button id="approveAllBtn" class="btn btn-success" onclick="approve()">✓ Aprobar KYC</button>
           <button class="btn btn-danger" onclick="showRejectReason()">✗ Rechazar</button>
           <button class="btn btn-danger" id="confirmRejectBtn" style="display:none" onclick="reject()">Confirmar rechazo</button>
         </div>
@@ -198,6 +198,13 @@
             ${actionsHtml}
           </div>
         `}).join('');
+        const hasBlockingDocs = data.documents.some(d => d.status === 'REJECTED' || d.status === 'PENDING');
+        const approveBtn = document.getElementById('approveAllBtn');
+        if (approveBtn) {
+          approveBtn.disabled = hasBlockingDocs;
+          approveBtn.style.opacity = hasBlockingDocs ? '0.5' : '1';
+          approveBtn.style.cursor = hasBlockingDocs ? 'not-allowed' : 'pointer';
+        }
       } catch (e) {
         infoEl.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
       }

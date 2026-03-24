@@ -388,9 +388,20 @@ export default function AdminKYCUserDetailScreen(): React.JSX.Element {
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.btn, styles.btnApprove]}
+          style={[
+            styles.btn,
+            styles.btnApprove,
+            (!!actionLoading ||
+              documents.some(
+                d => d.status === 'REJECTED' || d.status === 'PENDING',
+              )) &&
+              styles.buttonDisabled,
+          ]}
           onPress={handleApprove}
-          disabled={!!actionLoading}>
+          disabled={
+            !!actionLoading ||
+            documents.some(d => d.status === 'REJECTED' || d.status === 'PENDING')
+          }>
           {actionLoading === 'approve' ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
@@ -483,6 +494,7 @@ const styles = StyleSheet.create({
   },
   btnApprove: {backgroundColor: '#16a34a'},
   btnReject: {backgroundColor: '#dc2626'},
+  buttonDisabled: {opacity: 0.5},
   btnText: {color: '#fff', fontSize: 16, fontWeight: '600'},
   errorText: {fontSize: 16, color: '#ef4444', textAlign: 'center', marginBottom: 16},
   modalOverlay: {
