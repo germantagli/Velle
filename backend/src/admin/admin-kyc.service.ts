@@ -14,7 +14,15 @@ export class AdminKycService {
 
   async listPending() {
     const users = await this.prisma.user.findMany({
-      where: {kycStatus: 'UNDER_REVIEW'},
+      where: {
+        OR: [
+          {kycStatus: 'UNDER_REVIEW'},
+          {
+            kycStatus: 'REJECTED',
+            kycDocuments: {some: {status: 'PENDING'}},
+          },
+        ],
+      },
       select: {
         id: true,
         email: true,
@@ -31,7 +39,10 @@ export class AdminKycService {
     const withDocCount = await Promise.all(
       users.map(async u => {
         const count = await this.prisma.kycDocument.count({
-          where: {userId: u.id},
+          where: {
+            userId: u.id,
+            status: {in: ['PENDING', 'UNDER_REVIEW']},
+          },
         });
         return {...u, documentCount: count};
       }),
@@ -83,6 +94,7 @@ export class AdminKycService {
           label,
           viewUrl,
           status: d.status,
+          rejectionReason: d.rejectionReason,
           createdAt: d.createdAt,
         };
       }),
@@ -96,9 +108,9 @@ export class AdminKycService {
       where: {id: userId},
     });
     if (!user) throw new BadRequestException('Usuario no encontrado');
-    if (user.kycStatus !== 'UNDER_REVIEW') {
+    if (user.kycStatus !== 'UNDER_REVIEW' && user.kycStatus !== 'REJECTED') {
       throw new BadRequestException(
-        `Usuario en estado ${user.kycStatus}, no UNDER_REVIEW`,
+        `Usuario en estado ${user.kycStatus}, debe estar en revisión`,
       );
     }
 
@@ -123,9 +135,9 @@ export class AdminKycService {
       where: {id: userId},
     });
     if (!user) throw new BadRequestException('Usuario no encontrado');
-    if (user.kycStatus !== 'UNDER_REVIEW') {
+    if (user.kycStatus !== 'UNDER_REVIEW' && user.kycStatus !== 'REJECTED') {
       throw new BadRequestException(
-        `Usuario en estado ${user.kycStatus}, no UNDER_REVIEW`,
+        `Usuario en estado ${user.kycStatus}, debe estar en revisión`,
       );
     }
 
@@ -143,6 +155,60 @@ export class AdminKycService {
     });
 
     return {status: 'REJECTED', message: 'KYC rechazado'};
+  }
+
+  /** Aprueba un documento individual. Si todos quedan aprobados, aprueba el KYC completo. */
+  async approveDocument(userId: string, documentId: string) {
+    const doc = await this.prisma.kycDocument.findFirst({
+      where: {id: documentId, userId},
+    });
+    if (!doc) throw new BadRequestException('Documento no encontrado');
+    if (doc.status === 'VERIFIED') {
+      throw new BadRequestException('El documento ya está aprobado');
+    }
+
+    await this.prisma.kycDocument.update({
+      where: {id: documentId},
+      data: {status: 'VERIFIED', rejectionReason: null},
+    });
+
+    const pendingOrRejected = await this.prisma.kycDocument.count({
+      where: {
+        userId,
+        status: {in: ['PENDING', 'UNDER_REVIEW', 'REJECTED']},
+      },
+    });
+    if (pendingOrRejected === 0) {
+      await this.prisma.user.update({
+        where: {id: userId},
+        data: {kycStatus: 'VERIFIED', kycRejectionReason: null},
+      });
+      return {status: 'VERIFIED', message: 'Documento aprobado. KYC completo aprobado.'};
+    }
+    return {status: 'OK', message: 'Documento aprobado'};
+  }
+
+  /** Rechaza un documento individual. El cliente solo tendrá que volver a subir ese documento. */
+  async rejectDocument(userId: string, documentId: string, reason?: string) {
+    const doc = await this.prisma.kycDocument.findFirst({
+      where: {id: documentId, userId},
+    });
+    if (!doc) throw new BadRequestException('Documento no encontrado');
+
+    await this.prisma.kycDocument.update({
+      where: {id: documentId},
+      data: {status: 'REJECTED', rejectionReason: reason || null},
+    });
+
+    await this.prisma.user.update({
+      where: {id: userId},
+      data: {
+        kycStatus: 'REJECTED',
+        kycRejectionReason: 'Algunos documentos requieren corrección.',
+      },
+    });
+
+    return {status: 'REJECTED', message: 'Documento rechazado'};
   }
 
   private createServeToken(docId: string, secret: string): string {

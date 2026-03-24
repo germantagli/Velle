@@ -40,4 +40,21 @@ export class AdminKycController {
   ) {
     return this.adminKyc.reject(userId, body.reason);
   }
+
+  @Post('users/:userId/documents/:documentId/approve')
+  async approveDocument(
+    @Param('userId') userId: string,
+    @Param('documentId') documentId: string,
+  ) {
+    return this.adminKyc.approveDocument(userId, documentId);
+  }
+
+  @Post('users/:userId/documents/:documentId/reject')
+  async rejectDocument(
+    @Param('userId') userId: string,
+    @Param('documentId') documentId: string,
+    @Body() body: {reason?: string},
+  ) {
+    return this.adminKyc.rejectDocument(userId, documentId, body.reason);
+  }
 }

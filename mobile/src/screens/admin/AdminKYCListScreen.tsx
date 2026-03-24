@@ -38,6 +38,8 @@ export default function AdminKYCListScreen(): React.JSX.Element {
       const res = await adminApi.listPendingKyc();
       return res.data;
     },
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   const users = (data?.users ?? []) as PendingUser[];

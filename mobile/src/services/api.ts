@@ -314,7 +314,7 @@ export const kycApi = {
   getStatus: () =>
     api.get<{
       status: string;
-      documents: {type: string; status: string}[];
+      documents: {type: string; status: string; rejectionReason?: string | null}[];
       sumsubConfigured?: boolean;
     }>('/kyc/status'),
   /** Inicia verificación automatizada con Sumsub (documentos + selfie + liveness) */
@@ -370,4 +370,8 @@ export const adminApi = {
     api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/approve`),
   rejectKyc: (userId: string, reason?: string) =>
     api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/reject`, {reason}),
+  approveDocument: (userId: string, documentId: string) =>
+    api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/documents/${documentId}/approve`),
+  rejectDocument: (userId: string, documentId: string, reason?: string) =>
+    api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/documents/${documentId}/reject`, {reason}),
 };

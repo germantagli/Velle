@@ -18,12 +18,28 @@ export class KycService {
     });
     const docs = await this.prisma.kycDocument.findMany({
       where: {userId},
-      select: {type: true, status: true},
+      select: {type: true, status: true, rejectionReason: true, createdAt: true},
+      orderBy: {createdAt: 'desc'},
     });
+    // Por cada tipo, tomar el documento más reciente (el último subido)
+    const byType = new Map<string, {status: string; rejectionReason: string | null}>();
+    for (const d of docs) {
+      if (!byType.has(d.type)) {
+        byType.set(d.type, {
+          status: d.status,
+          rejectionReason: d.rejectionReason,
+        });
+      }
+    }
+    const documents = Array.from(byType.entries()).map(([type, v]) => ({
+      type,
+      status: v.status,
+      rejectionReason: v.rejectionReason,
+    }));
     return {
       status: user?.kycStatus ?? 'PENDING',
       rejectionReason: user?.kycRejectionReason ?? null,
-      documents: docs.map(d => ({type: d.type, status: d.status})),
+      documents,
       sumsubConfigured: this.sumsub.isConfigured(),
     };
   }
@@ -147,18 +163,33 @@ export class KycService {
     userId: string,
     documents: {type: string; url: string}[],
   ) {
-    for (const doc of documents) {
-      await this.prisma.kycDocument.create({
-        data: {
-          userId,
-          type: doc.type,
-          url: doc.url,
-        },
+    for (const {type, url} of documents) {
+      // Si hay un documento RECHAZADO de este tipo, actualizarlo en lugar de crear uno nuevo
+      const rejected = await this.prisma.kycDocument.findFirst({
+        where: {userId, type, status: 'REJECTED'},
+        orderBy: {createdAt: 'desc'},
       });
+      if (rejected) {
+        await this.prisma.kycDocument.update({
+          where: {id: rejected.id},
+          data: {
+            url,
+            status: 'PENDING',
+            rejectionReason: null,
+          },
+        });
+      } else {
+        await this.prisma.kycDocument.create({
+          data: {userId, type, url},
+        });
+      }
     }
     await this.prisma.user.update({
       where: {id: userId},
-      data: {kycStatus: 'UNDER_REVIEW'},
+      data: {
+        kycStatus: 'UNDER_REVIEW',
+        kycRejectionReason: null, // Limpiar motivo de rechazo en reenvío
+      },
     });
     return {status: 'submitted'};
   }

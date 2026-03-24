@@ -31,6 +31,11 @@ export default function KYCScreen(): React.JSX.Element {
   const setAuth = useAuthStore(s => s.setAuth);
   const insets = useSafeAreaInsets();
 
+  const [docStatuses, setDocStatuses] = useState<{
+    status: string;
+    documents: Array<{type: string; status: string; rejectionReason?: string | null}>;
+  } | null>(null);
+
   useEffect(() => {
     checkKycStatus();
   }, []);
@@ -39,6 +44,7 @@ export default function KYCScreen(): React.JSX.Element {
     setLoading(true);
     try {
       const {data} = await kycApi.getStatus();
+      setDocStatuses(data);
       if (data.status === 'VERIFIED') {
         const user = useAuthStore.getState().user;
         if (user)
@@ -128,8 +134,18 @@ export default function KYCScreen(): React.JSX.Element {
     }
   };
 
+  // Si hay documentos rechazados, solo pedir re-subir esos; si no, pedir todos
+  const requiredTypes =
+    docStatuses?.documents?.some(d => d.status === 'REJECTED')
+      ? DOC_TYPES.filter(d =>
+          docStatuses!.documents.find(
+            sd => sd.type === d.key && sd.status === 'REJECTED',
+          ),
+        )
+      : DOC_TYPES;
+
   const handleSubmitManual = async () => {
-    const missing = DOC_TYPES.filter(d => !uploadedDocs[d.key]);
+    const missing = requiredTypes.filter(d => !uploadedDocs[d.key]);
     if (missing.length > 0) {
       Alert.alert(
         'Documentos incompletos',
@@ -140,7 +156,7 @@ export default function KYCScreen(): React.JSX.Element {
     setSubmitting(true);
     try {
       await kycApi.submit(
-        DOC_TYPES.map(d => ({type: d.key, url: uploadedDocs[d.key]})),
+        requiredTypes.map(d => ({type: d.key, url: uploadedDocs[d.key]})),
       );
       const user = useAuthStore.getState().user;
       if (user)
@@ -149,7 +165,9 @@ export default function KYCScreen(): React.JSX.Element {
         });
       Alert.alert(
         'Documentos enviados',
-        'Recibirás notificación cuando se complete la verificación.',
+        requiredTypes.length < DOC_TYPES.length
+          ? 'Solo enviaste los documentos corregidos. Recibirás notificación cuando se complete la verificación.'
+          : 'Recibirás notificación cuando se complete la verificación.',
         [{text: 'Continuar', onPress: () => navigation.replace('Main')}],
       );
     } catch (e: any) {
@@ -179,12 +197,33 @@ export default function KYCScreen(): React.JSX.Element {
         </Text>
 
         <View style={styles.card}>
-            <Text style={styles.cardTitle}>Subir documentos</Text>
-            <Text style={styles.cardDesc}>
-              Captura con la cámara cada documento requerido. Los enviaremos para
-              verificación.
+            <Text style={styles.cardTitle}>
+              {requiredTypes.length < DOC_TYPES.length
+                ? 'Corregir documentos rechazados'
+                : 'Subir documentos'}
             </Text>
-            {DOC_TYPES.map(d => (
+            <Text style={styles.cardDesc}>
+              {requiredTypes.length < DOC_TYPES.length
+                ? `Solo necesitas volver a subir los documentos indicados. Los demás ya fueron aprobados.${
+                    docStatuses?.documents?.some(
+                      sd =>
+                        sd.status === 'REJECTED' &&
+                        sd.rejectionReason &&
+                        requiredTypes.some(rt => rt.key === sd.type),
+                    )
+                      ? '\n\nMotivos de rechazo: ' +
+                        docStatuses.documents
+                          .filter(sd => sd.status === 'REJECTED' && sd.rejectionReason)
+                          .map(
+                            sd =>
+                              `${DOC_TYPES.find(t => t.key === sd.type)?.label}: ${sd.rejectionReason}`,
+                          )
+                          .join('; ')
+                      : ''
+                  }`
+                : 'Captura con la cámara cada documento requerido. Los enviaremos para verificación.'}
+            </Text>
+            {requiredTypes.map(d => (
               <TouchableOpacity
                 key={d.key}
                 style={[
@@ -210,13 +249,13 @@ export default function KYCScreen(): React.JSX.Element {
               style={[
                 styles.buttonPrimary,
                 (submitting ||
-                  Object.keys(uploadedDocs).length < DOC_TYPES.length) &&
+                  requiredTypes.some(d => !uploadedDocs[d.key])) &&
                   styles.buttonDisabled,
               ]}
               onPress={handleSubmitManual}
               disabled={
                 submitting ||
-                Object.keys(uploadedDocs).length < DOC_TYPES.length
+                requiredTypes.some(d => !uploadedDocs[d.key])
               }>
               {submitting ? (
                 <ActivityIndicator color="#fff" />
