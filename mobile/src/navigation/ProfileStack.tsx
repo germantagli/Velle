@@ -12,6 +12,7 @@ import SupportLocalChatScreen from '../screens/profile/SupportLocalChatScreen';
 import LanguageScreen from '../screens/profile/LanguageScreen';
 import AdminKYCListScreen from '../screens/admin/AdminKYCListScreen';
 import AdminKYCUserDetailScreen from '../screens/admin/AdminKYCUserDetailScreen';
+import NotificationInboxScreen from '../screens/notifications/NotificationInboxScreen';
 
 export type ProfileStackParamList = {
   ProfileHome: undefined;
@@ -19,6 +20,7 @@ export type ProfileStackParamList = {
   Security: undefined;
   TwoFA: undefined;
   Notifications: undefined;
+  NotificationInbox: undefined;
   Support: undefined;
   SupportChat: undefined;
   SupportLocalChat: undefined;
@@ -62,6 +64,11 @@ export default function ProfileStack(): React.JSX.Element {
         name="Notifications"
         component={NotificationsScreen}
         options={{title: t('profile.notifications')}}
+      />
+      <Stack.Screen
+        name="NotificationInbox"
+        component={NotificationInboxScreen}
+        options={{title: t('profile.notificationInbox', {defaultValue: 'Bandeja de notificaciones'})}}
       />
       <Stack.Screen
         name="Support"

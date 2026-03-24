@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
 import {Decimal} from '@prisma/client/runtime/library';
+import {NotificationService} from '../notification/notification.service';
 
 @Injectable()
 export class TransferService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notification: NotificationService,
+  ) {}
 
   async searchUser(query: string, excludeUserId: string) {
     if (!query || query.trim().length < 3 || !excludeUserId) return {users: []};
@@ -94,8 +98,28 @@ export class TransferService {
           metadata: {note, direction: 'in'},
         },
       });
-      return txOut;
+      return {txOut, senderId, recipientId, amount, recipientName: `${recipient.firstName} ${recipient.lastName}`.trim() || recipient.email};
     });
+    const sender = await this.prisma.user.findUnique({
+      where: {id: result.senderId},
+      select: {firstName: true, lastName: true, email: true},
+    });
+    const senderName = sender ? `${sender.firstName} ${sender.lastName}`.trim() || sender.email : 'Alguien';
+    await this.notification.create({
+      userId: result.senderId,
+      type: 'TRANSACTION_P2P_SENT',
+      title: 'Transferencia enviada',
+      body: `Enviaste $${result.amount.toFixed(2)} USDT a ${result.recipientName}.`,
+      metadata: {transactionId: result.txOut.id, amount: result.amount, recipientId: result.recipientId},
+    });
+    await this.notification.create({
+      userId: result.recipientId,
+      type: 'TRANSACTION_P2P_RECEIVED',
+      title: 'Dinero recibido',
+      body: `Recibiste $${result.amount.toFixed(2)} USDT de ${senderName}.`,
+      metadata: {transactionId: result.txOut.id, amount: result.amount, senderId: result.senderId},
+    });
+    return result.txOut;
   }
 
   /** P2P en VES (bolívares) */
@@ -154,8 +178,28 @@ export class TransferService {
           metadata: {note, direction: 'in'},
         },
       });
-      return txOut;
+      return {txOut, senderId, recipientId, amount, recipientName: `${recipient.firstName} ${recipient.lastName}`.trim() || recipient.email};
     });
+    const sender = await this.prisma.user.findUnique({
+      where: {id: result.senderId},
+      select: {firstName: true, lastName: true, email: true},
+    });
+    const senderName = sender ? `${sender.firstName} ${sender.lastName}`.trim() || sender.email : 'Alguien';
+    await this.notification.create({
+      userId: result.senderId,
+      type: 'TRANSACTION_P2P_SENT',
+      title: 'Transferencia VES enviada',
+      body: `Enviaste Bs. ${result.amount.toLocaleString()} a ${result.recipientName}.`,
+      metadata: {transactionId: result.txOut.id, amount: result.amount, recipientId: result.recipientId, currency: 'VES'},
+    });
+    await this.notification.create({
+      userId: result.recipientId,
+      type: 'TRANSACTION_P2P_RECEIVED',
+      title: 'Dinero VES recibido',
+      body: `Recibiste Bs. ${result.amount.toLocaleString()} de ${senderName}.`,
+      metadata: {transactionId: result.txOut.id, amount: result.amount, senderId: result.senderId, currency: 'VES'},
+    });
+    return result.txOut;
   }
 
   async merchant(
@@ -183,7 +227,7 @@ export class TransferService {
         where: {userId},
         data: {balanceUsdt: bal.minus(amount)},
       });
-      return tx.transaction.create({
+      const txn = await tx.transaction.create({
         data: {
           userId,
           type: 'MERCHANT_PAY',
@@ -194,6 +238,15 @@ export class TransferService {
           metadata: {method},
         },
       });
+      return {txn, merchant};
     });
+    await this.notification.create({
+      userId,
+      type: 'TRANSACTION_MERCHANT_PAY',
+      title: 'Pago a comercio',
+      body: `Pagaste $${amount.toFixed(2)} USDT a ${result.merchant.name}.`,
+      metadata: {transactionId: result.txn.id, amount, merchantId},
+    });
+    return result.txn;
   }
 }

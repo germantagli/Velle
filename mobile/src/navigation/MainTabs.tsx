@@ -2,11 +2,13 @@ import React from 'react';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {useQuery} from '@tanstack/react-query';
 import HomeScreen from '../screens/home/HomeScreen';
 import TransferHubScreen from '../screens/transfer/TransferHubScreen';
 import HistoryScreen from '../screens/history/HistoryScreen';
 import NotificationInboxScreen from '../screens/notifications/NotificationInboxScreen';
 import ProfileStack from './ProfileStack';
+import {notificationApi} from '../services/api';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,6 +32,14 @@ function TabIcon({name, focused}: {name: string; focused: boolean}) {
 
 export default function MainTabs(): React.JSX.Element {
   const {t} = useTranslation();
+  const {data} = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => notificationApi.list(1).then(r => r.data),
+    staleTime: 30000,
+    refetchOnMount: 'always', // actualizar badge al abrir la app
+  });
+  const unreadCount = data?.unreadCount ?? 0;
+
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
@@ -62,7 +72,10 @@ export default function MainTabs(): React.JSX.Element {
       <Tab.Screen
         name="Notificaciones"
         component={NotificationInboxScreen}
-        options={{title: t('tabs.notifications', {defaultValue: 'Notificaciones'})}}
+        options={{
+          title: t('tabs.notifications', {defaultValue: 'Notificaciones'}),
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+        }}
       />
       <Tab.Screen
         name="Perfil"

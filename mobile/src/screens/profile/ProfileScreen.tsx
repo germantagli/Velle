@@ -116,8 +116,14 @@ export default function ProfileScreen(): React.JSX.Element {
         )}
         <TouchableOpacity
           style={styles.menuItem}
+          onPress={() => navigation.navigate('NotificationInbox')}>
+          <Text style={styles.menuText}>{t('profile.notificationInbox', {defaultValue: 'Bandeja de notificaciones'})}</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
           onPress={() => navigation.navigate('Notifications')}>
-          <Text style={styles.menuText}>{t('profile.notifications')}</Text>
+          <Text style={styles.menuText}>{t('profile.notificationSettings', {defaultValue: 'Preferencias de notificaciones'})}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
