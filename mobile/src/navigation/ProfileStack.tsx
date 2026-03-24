@@ -1,6 +1,6 @@
 import React from 'react';
-import {Text, TouchableOpacity} from 'react-native';
 import {useTranslation} from 'react-i18next';
+import {HeaderBackButton} from '@react-navigation/elements';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
@@ -101,19 +101,13 @@ export default function ProfileStack(): React.JSX.Element {
         component={AdminKYCUserDetailScreen}
         options={({navigation}) => ({
           title: 'Detalle KYC',
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                } else {
-                  navigation.navigate('ProfileHome');
-                }
-              }}
-              style={{marginLeft: 16}}
-              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-              <Text style={{color: '#0066CC', fontSize: 16}}>← Volver</Text>
-            </TouchableOpacity>
+          headerLeft: props => (
+            <HeaderBackButton
+              {...props}
+              labelVisible={false}
+              onPress={() => navigation.navigate('ProfileHome')}
+              tintColor="#1a1a2e"
+            />
           ),
         })}
       />

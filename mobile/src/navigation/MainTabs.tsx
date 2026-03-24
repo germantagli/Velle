@@ -80,7 +80,16 @@ export default function MainTabs(): React.JSX.Element {
       <Tab.Screen
         name="Perfil"
         component={ProfileStack}
-        options={{title: t('tabs.profile'), headerShown: false}}
+        options={{
+          title: t('tabs.profile'),
+          headerShown: false,
+          listeners: ({navigation}) => ({
+            tabPress: e => {
+              // Siempre resetear al menú de perfil al entrar al tab
+              navigation.navigate('Perfil', {screen: 'ProfileHome'});
+            },
+          }),
+        }}
       />
     </Tab.Navigator>
   );
