@@ -375,3 +375,23 @@ export const adminApi = {
   rejectDocument: (userId: string, documentId: string, reason?: string) =>
     api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/documents/${documentId}/reject`, {reason}),
 };
+
+// Notifications (inbox)
+export type NotificationItem = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  metadata?: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export const notificationApi = {
+  list: (limit?: number) =>
+    api.get<{items: NotificationItem[]; unreadCount: number}>(
+      '/notifications' + (limit ? `?limit=${limit}` : ''),
+    ),
+  markAsRead: (id: string) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
+};

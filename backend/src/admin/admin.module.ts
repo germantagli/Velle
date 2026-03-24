@@ -1,9 +1,11 @@
 import {Module} from '@nestjs/common';
+import {NotificationModule} from '../notification/notification.module';
 import {AdminKycController} from './admin-kyc.controller';
 import {AdminKycDocumentController} from './admin-kyc-document.controller';
 import {AdminKycService} from './admin-kyc.service';
 
 @Module({
+  imports: [NotificationModule],
   controllers: [AdminKycController, AdminKycDocumentController],
   providers: [AdminKycService],
 })

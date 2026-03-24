@@ -24,6 +24,7 @@ import {AppController} from './app.controller';
 import {SupportModule} from './support/support.module';
 import {StorageModule} from './storage/storage.module';
 import {AdminModule} from './admin/admin.module';
+import {NotificationModule} from './notification/notification.module';
 
 @Module({
   controllers: [AppController],
@@ -51,6 +52,7 @@ import {AdminModule} from './admin/admin.module';
     WebhooksModule,
     SupportModule,
     AdminModule,
+    NotificationModule,
   ],
   providers: [
     {provide: APP_GUARD, useClass: ThrottlerGuard},

@@ -42,6 +42,20 @@ model User {
   limitUsages   LimitUsage[]
   bankAccounts  BankAccount[]
   passwordResetTokens PasswordResetToken[]
+  notifications Notification[]
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      String    // KYC_APPROVED, KYC_REJECTED, KYC_DOCUMENT_APPROVED, KYC_DOCUMENT_REJECTED, KYC_SUBMITTED
+  title     String
+  body      String    @db.Text
+  metadata  Json?     // {userId, userName, email, docType, reason, documentCount, etc}
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum OtpPurpose {

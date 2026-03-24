@@ -1,6 +1,7 @@
 import {Injectable, BadRequestException} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import * as crypto from 'crypto';
+import {NotificationService} from '../notification/notification.service';
 import {PrismaService} from '../prisma/prisma.service';
 import {S3Service} from '../storage/s3.service';
 
@@ -10,6 +11,7 @@ export class AdminKycService {
     private prisma: PrismaService,
     private s3: S3Service,
     private config: ConfigService,
+    private notification: NotificationService,
   ) {}
 
   async listPending() {
@@ -127,6 +129,14 @@ export class AdminKycService {
       data: {status: 'VERIFIED'},
     });
 
+    await this.notification.create({
+      userId,
+      type: 'KYC_APPROVED',
+      title: 'KYC aprobado',
+      body: 'Tu verificación de identidad ha sido aprobada. Ya puedes usar todas las funciones de la app.',
+      metadata: {userId},
+    });
+
     return {status: 'VERIFIED', message: 'KYC aprobado'};
   }
 
@@ -154,6 +164,16 @@ export class AdminKycService {
       data: {status: 'REJECTED', rejectionReason: reason || null},
     });
 
+    await this.notification.create({
+      userId,
+      type: 'KYC_REJECTED',
+      title: 'KYC rechazado',
+      body: reason
+        ? `Tu solicitud de verificación fue rechazada. Motivo: ${reason}`
+        : 'Tu solicitud de verificación fue rechazada. Por favor, revisa tus documentos y vuelve a intentar.',
+      metadata: {userId, reason: reason ?? null},
+    });
+
     return {status: 'REJECTED', message: 'KYC rechazado'};
   }
 
@@ -178,13 +198,37 @@ export class AdminKycService {
         status: {in: ['PENDING', 'UNDER_REVIEW', 'REJECTED']},
       },
     });
+    const docLabel =
+      doc.type === 'id_front'
+        ? 'DNI / Cédula / Pasaporte'
+        : doc.type === 'selfie'
+          ? 'Selfie con documento'
+          : doc.type === 'proof_of_address'
+            ? 'Comprobante de domicilio'
+            : doc.type;
+
     if (pendingOrRejected === 0) {
       await this.prisma.user.update({
         where: {id: userId},
         data: {kycStatus: 'VERIFIED', kycRejectionReason: null},
       });
+      await this.notification.create({
+        userId,
+        type: 'KYC_APPROVED',
+        title: 'KYC aprobado',
+        body: 'Tu verificación de identidad ha sido aprobada. Ya puedes usar todas las funciones de la app.',
+        metadata: {userId},
+      });
       return {status: 'VERIFIED', message: 'Documento aprobado. KYC completo aprobado.'};
     }
+
+    await this.notification.create({
+      userId,
+      type: 'KYC_DOCUMENT_APPROVED',
+      title: 'Documento aprobado',
+      body: `El documento "${docLabel}" fue aprobado. Aún hay otros documentos pendientes de revisión.`,
+      metadata: {userId, docType: doc.type, docLabel},
+    });
     return {status: 'OK', message: 'Documento aprobado'};
   }
 
@@ -206,6 +250,25 @@ export class AdminKycService {
         kycStatus: 'REJECTED',
         kycRejectionReason: 'Algunos documentos requieren corrección.',
       },
+    });
+
+    const docLabel =
+      doc.type === 'id_front'
+        ? 'DNI / Cédula / Pasaporte'
+        : doc.type === 'selfie'
+          ? 'Selfie con documento'
+          : doc.type === 'proof_of_address'
+            ? 'Comprobante de domicilio'
+            : doc.type;
+
+    await this.notification.create({
+      userId,
+      type: 'KYC_DOCUMENT_REJECTED',
+      title: 'Documento rechazado',
+      body: reason
+        ? `El documento "${docLabel}" fue rechazado. Motivo: ${reason}. Por favor, vuelve a subir solo ese documento.`
+        : `El documento "${docLabel}" fue rechazado. Por favor, vuelve a subirlo.`,
+      metadata: {userId, docType: doc.type, docLabel, reason: reason ?? null},
     });
 
     return {status: 'REJECTED', message: 'Documento rechazado'};

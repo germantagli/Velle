@@ -1,7 +1,8 @@
 import {Injectable, BadRequestException} from '@nestjs/common';
+import {NotificationService} from '../notification/notification.service';
 import {PrismaService} from '../prisma/prisma.service';
-import {SumsubService} from './sumsub.service';
 import {S3Service} from '../storage/s3.service';
+import {SumsubService} from './sumsub.service';
 
 @Injectable()
 export class KycService {
@@ -9,6 +10,7 @@ export class KycService {
     private prisma: PrismaService,
     private sumsub: SumsubService,
     private s3: S3Service,
+    private notification: NotificationService,
   ) {}
 
   async getStatus(userId: string) {
@@ -191,6 +193,28 @@ export class KycService {
         kycRejectionReason: null, // Limpiar motivo de rechazo en reenvío
       },
     });
+
+    const user = await this.prisma.user.findUnique({
+      where: {id: userId},
+      select: {firstName: true, lastName: true, email: true},
+    });
+    const userName = user
+      ? `${user.firstName} ${user.lastName}`.trim() || user.email
+      : 'Usuario';
+    const docCount = documents.length;
+
+    await this.notification.notifyAdmins({
+      type: 'KYC_SUBMITTED',
+      title: 'Nuevos documentos KYC para revisar',
+      body: `${userName} (${user?.email}) envió ${docCount} documento(s) para revisión.`,
+      metadata: {
+        userId,
+        userName,
+        email: user?.email,
+        documentCount: docCount,
+      },
+    });
+
     return {status: 'submitted'};
   }
 }

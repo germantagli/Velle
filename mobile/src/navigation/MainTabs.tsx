@@ -5,6 +5,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/home/HomeScreen';
 import TransferHubScreen from '../screens/transfer/TransferHubScreen';
 import HistoryScreen from '../screens/history/HistoryScreen';
+import NotificationInboxScreen from '../screens/notifications/NotificationInboxScreen';
 import ProfileStack from './ProfileStack';
 
 const Tab = createBottomTabNavigator();
@@ -13,6 +14,7 @@ const TAB_ICONS: Record<string, string> = {
   Inicio: '💳',
   Transferir: '📤',
   Historial: '📋',
+  Notificaciones: '🔔',
   Perfil: '👤',
 };
 
@@ -56,6 +58,11 @@ export default function MainTabs(): React.JSX.Element {
         name="Historial"
         component={HistoryScreen}
         options={{title: t('tabs.history')}}
+      />
+      <Tab.Screen
+        name="Notificaciones"
+        component={NotificationInboxScreen}
+        options={{title: t('tabs.notifications', {defaultValue: 'Notificaciones'})}}
       />
       <Tab.Screen
         name="Perfil"
