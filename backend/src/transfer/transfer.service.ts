@@ -57,7 +57,7 @@ export class TransferService {
     });
     if (!recipient) throw new NotFoundException('Destinatario no encontrado');
 
-    return this.prisma.$transaction(async tx => {
+    const result = await this.prisma.$transaction(async tx => {
       const [senderWallet, recipientWallet] = await Promise.all([
         tx.wallet.findUnique({where: {userId: senderId}}),
         tx.wallet.findUnique({where: {userId: recipientId}}),
@@ -104,7 +104,7 @@ export class TransferService {
       where: {id: result.senderId},
       select: {firstName: true, lastName: true, email: true},
     });
-    const senderName = sender ? `${sender.firstName} ${sender.lastName}`.trim() || sender.email : 'Alguien';
+    const senderName = sender ? (`${sender.firstName} ${sender.lastName}`.trim() || sender.email || 'Alguien') : 'Alguien';
     await this.notification.create({
       userId: result.senderId,
       type: 'TRANSACTION_P2P_SENT',
@@ -137,7 +137,7 @@ export class TransferService {
     });
     if (!recipient) throw new NotFoundException('Destinatario no encontrado');
 
-    return this.prisma.$transaction(async tx => {
+    const result = await this.prisma.$transaction(async tx => {
       const [senderWallet, recipientWallet] = await Promise.all([
         tx.wallet.findUnique({where: {userId: senderId}}),
         tx.wallet.findUnique({where: {userId: recipientId}}),
@@ -184,7 +184,7 @@ export class TransferService {
       where: {id: result.senderId},
       select: {firstName: true, lastName: true, email: true},
     });
-    const senderName = sender ? `${sender.firstName} ${sender.lastName}`.trim() || sender.email : 'Alguien';
+    const senderName = sender ? (`${sender.firstName} ${sender.lastName}`.trim() || sender.email || 'Alguien') : 'Alguien';
     await this.notification.create({
       userId: result.senderId,
       type: 'TRANSACTION_P2P_SENT',
@@ -214,7 +214,7 @@ export class TransferService {
     });
     if (!merchant) throw new NotFoundException('Comercio no encontrado');
 
-    return this.prisma.$transaction(async tx => {
+    const result = await this.prisma.$transaction(async tx => {
       const wallet = await tx.wallet.findUnique({
         where: {userId},
       });

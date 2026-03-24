@@ -39,7 +39,7 @@ export class NotificationService {
         type: data.type,
         title: data.title,
         body: data.body,
-        metadata: data.metadata ?? undefined,
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : undefined,
       },
     });
   }
