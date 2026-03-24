@@ -394,4 +394,6 @@ export const notificationApi = {
     ),
   markAsRead: (id: string) => api.patch(`/notifications/${id}/read`),
   markAllAsRead: () => api.patch('/notifications/read-all'),
+  delete: (id: string) => api.delete(`/notifications/${id}`),
+  deleteAll: () => api.delete('/notifications'),
 };

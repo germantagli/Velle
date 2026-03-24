@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import {useQuery} from '@tanstack/react-query';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {adminApi} from '../../services/api';
 
 type PendingUser = {
@@ -41,6 +41,13 @@ export default function AdminKYCListScreen(): React.JSX.Element {
     refetchOnMount: 'always',
     staleTime: 0,
   });
+
+  // Refrescar al volver a esta pantalla (ej. usuario reenvió documentos)
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const users = (data?.users ?? []) as PendingUser[];
 

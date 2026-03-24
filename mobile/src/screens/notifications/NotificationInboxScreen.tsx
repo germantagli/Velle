@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
+  Alert,
 } from 'react-native';
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {useNavigation} from '@react-navigation/native';
@@ -86,8 +86,48 @@ export default function NotificationInboxScreen(): React.JSX.Element {
     onSuccess: () => queryClient.invalidateQueries({queryKey: ['notifications']}),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => notificationApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({queryKey: ['notifications']}),
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: () => notificationApi.deleteAll(),
+    onSuccess: () => queryClient.invalidateQueries({queryKey: ['notifications']}),
+  });
+
   const items = data?.items ?? [];
   const unreadCount = data?.unreadCount ?? 0;
+
+  const handleDelete = (item: NotificationItem) => {
+    Alert.alert(
+      'Eliminar notificación',
+      '¿Eliminar esta notificación?',
+      [
+        {text: 'Cancelar', style: 'cancel'},
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => deleteMutation.mutate(item.id),
+        },
+      ],
+    );
+  };
+
+  const handleDeleteAll = () => {
+    Alert.alert(
+      'Eliminar todas',
+      '¿Eliminar todas las notificaciones?',
+      [
+        {text: 'Cancelar', style: 'cancel'},
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => deleteAllMutation.mutate(),
+        },
+      ],
+    );
+  };
 
   const handlePress = (item: NotificationItem) => {
     setExpandedId(prev => (prev === item.id ? null : item.id));
@@ -110,31 +150,39 @@ export default function NotificationInboxScreen(): React.JSX.Element {
     const color = getTypeColor(item.type);
 
     return (
-      <TouchableOpacity
-        style={[
-          styles.card,
-          isUnread && styles.cardUnread,
-          isExpanded && styles.cardExpanded,
-        ]}
-        onPress={() => handlePress(item)}
-        activeOpacity={0.7}>
-        <View style={styles.cardHeader}>
-          <View style={[styles.iconBadge, {backgroundColor: color + '20'}]}>
-            <Text style={[styles.iconText, {color}]}>{icon}</Text>
+      <View style={styles.cardWrapper}>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            isUnread && styles.cardUnread,
+            isExpanded && styles.cardExpanded,
+          ]}
+          onPress={() => handlePress(item)}
+          activeOpacity={0.7}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.iconBadge, {backgroundColor: color + '20'}]}>
+              <Text style={[styles.iconText, {color}]}>{icon}</Text>
+            </View>
+            <View style={styles.cardHeaderText}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text style={styles.date}>{formatDate(item.createdAt)}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => handleDelete(item)}
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+              <Text style={styles.deleteBtnText}>✕</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.cardHeaderText}>
-            <Text style={styles.title} numberOfLines={1}>
-              {item.title}
-            </Text>
-            <Text style={styles.date}>{formatDate(item.createdAt)}</Text>
-          </View>
-        </View>
-        <Text
-          style={styles.body}
-          numberOfLines={isExpanded ? undefined : 2}>
-          {item.body}
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={styles.body}
+            numberOfLines={isExpanded ? undefined : 2}>
+            {item.body}
+          </Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -148,17 +196,29 @@ export default function NotificationInboxScreen(): React.JSX.Element {
 
   return (
     <View style={styles.container}>
-      {unreadCount > 0 && (
+      {(unreadCount > 0 || items.length > 0) && (
         <View style={styles.toolbar}>
           <Text style={styles.unreadText}>
-            {unreadCount} sin leer
+            {unreadCount > 0 ? `${unreadCount} sin leer` : `${items.length} notificación(es)`}
           </Text>
-          <TouchableOpacity
-            style={styles.markAllBtn}
-            onPress={() => markAllReadMutation.mutate()}
-            disabled={markAllReadMutation.isPending}>
-            <Text style={styles.markAllText}>Marcar todo como leído</Text>
-          </TouchableOpacity>
+          <View style={styles.toolbarActions}>
+            {unreadCount > 0 && (
+              <TouchableOpacity
+                style={styles.toolbarBtn}
+                onPress={() => markAllReadMutation.mutate()}
+                disabled={markAllReadMutation.isPending}>
+                <Text style={styles.markAllText}>Marcar leído</Text>
+              </TouchableOpacity>
+            )}
+            {items.length > 0 && (
+              <TouchableOpacity
+                style={styles.toolbarBtn}
+                onPress={handleDeleteAll}
+                disabled={deleteAllMutation.isPending}>
+                <Text style={styles.deleteAllText}>Eliminar todas</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       )}
       {items.length === 0 ? (
@@ -202,14 +262,16 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   unreadText: {fontSize: 13, color: '#666'},
-  markAllBtn: {paddingVertical: 4, paddingHorizontal: 8},
+  toolbarActions: {flexDirection: 'row', gap: 12},
+  toolbarBtn: {paddingVertical: 4, paddingHorizontal: 8},
   markAllText: {fontSize: 14, color: '#0066CC', fontWeight: '600'},
+  deleteAllText: {fontSize: 14, color: '#dc2626', fontWeight: '600'},
   list: {padding: 16, paddingBottom: 32},
+  cardWrapper: {marginBottom: 10},
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#e5e5e5',
   },
@@ -231,6 +293,11 @@ const styles = StyleSheet.create({
   },
   iconText: {fontSize: 18, fontWeight: 'bold'},
   cardHeaderText: {flex: 1},
+  deleteBtn: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  deleteBtnText: {fontSize: 16, color: '#999'},
   title: {fontSize: 16, fontWeight: '600', color: '#1a1a2e'},
   date: {fontSize: 12, color: '#888', marginTop: 2},
   body: {fontSize: 14, color: '#555', lineHeight: 22},

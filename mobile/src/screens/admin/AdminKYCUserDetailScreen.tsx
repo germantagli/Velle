@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import {API_URL} from '../../config';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {useNavigation, useRoute, useFocusEffect, RouteProp} from '@react-navigation/native';
 import {adminApi} from '../../services/api';
 
 type RouteParams = {AdminKYCUserDetail: {userId: string}};
@@ -42,6 +42,13 @@ export default function AdminKYCUserDetailScreen(): React.JSX.Element {
     },
     enabled: !!userId,
   });
+
+  // Refrescar al volver a esta pantalla (ej. usuario reenvió documentos)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (userId) refetch();
+    }, [userId, refetch]),
+  );
 
   const handleApprove = () => {
     Alert.alert(
