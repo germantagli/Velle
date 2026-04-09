@@ -280,6 +280,14 @@ export class DepositService {
 
     const autoConvert = await this.config.getBool('auto_convert_ves_on_deposit');
     const amountVes = Number(deposit.exactAmountToPay);
+    const bankProviderResult:
+      | Prisma.InputJsonValue
+      | Prisma.NullableJsonNullValueInput
+      | undefined = opts?.providerResult
+      ? (opts.providerResult as Prisma.InputJsonValue)
+      : deposit.bankProviderResult === null
+        ? Prisma.JsonNull
+        : (deposit.bankProviderResult as Prisma.InputJsonValue);
 
     await this.prisma.$transaction(async tx => {
       await tx.deposit.update({
@@ -289,9 +297,7 @@ export class DepositService {
           verifiedAt: new Date(),
           confirmedAt: new Date(),
           bankReconciliationRef: opts?.reconciliationRef ?? deposit.bankReconciliationRef ?? null,
-          bankProviderResult: opts?.providerResult
-            ? (opts.providerResult as Prisma.InputJsonValue)
-            : (deposit.bankProviderResult ?? Prisma.JsonNull),
+          bankProviderResult,
           reviewedBy: opts?.reviewedBy ?? deposit.reviewedBy ?? null,
           reviewedAt: opts?.reviewedBy ? new Date() : deposit.reviewedAt,
         },
