@@ -1,13 +1,41 @@
 -- Expand DepositStatus enum for the new VES deposit flow
 DO $$
 BEGIN
-  ALTER TYPE "DepositStatus" ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';
-  ALTER TYPE "DepositStatus" ADD VALUE IF NOT EXISTS 'PAYMENT_SUBMITTED';
-  ALTER TYPE "DepositStatus" ADD VALUE IF NOT EXISTS 'VERIFICATION_PENDING';
-  ALTER TYPE "DepositStatus" ADD VALUE IF NOT EXISTS 'MANUAL_REVIEW';
-  ALTER TYPE "DepositStatus" ADD VALUE IF NOT EXISTS 'EXPIRED';
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_enum e ON e.enumtypid = t.oid
+    WHERE t.typname = 'DepositStatus' AND e.enumlabel = 'PENDING_PAYMENT'
+  ) THEN
+    EXECUTE 'ALTER TYPE "DepositStatus" ADD VALUE ''PENDING_PAYMENT''';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_enum e ON e.enumtypid = t.oid
+    WHERE t.typname = 'DepositStatus' AND e.enumlabel = 'PAYMENT_SUBMITTED'
+  ) THEN
+    EXECUTE 'ALTER TYPE "DepositStatus" ADD VALUE ''PAYMENT_SUBMITTED''';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_enum e ON e.enumtypid = t.oid
+    WHERE t.typname = 'DepositStatus' AND e.enumlabel = 'VERIFICATION_PENDING'
+  ) THEN
+    EXECUTE 'ALTER TYPE "DepositStatus" ADD VALUE ''VERIFICATION_PENDING''';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_enum e ON e.enumtypid = t.oid
+    WHERE t.typname = 'DepositStatus' AND e.enumlabel = 'MANUAL_REVIEW'
+  ) THEN
+    EXECUTE 'ALTER TYPE "DepositStatus" ADD VALUE ''MANUAL_REVIEW''';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_enum e ON e.enumtypid = t.oid
+    WHERE t.typname = 'DepositStatus' AND e.enumlabel = 'EXPIRED'
+  ) THEN
+    EXECUTE 'ALTER TYPE "DepositStatus" ADD VALUE ''EXPIRED''';
+  END IF;
 END $$;
 
 -- Add new columns required by the improved deposit flow
