@@ -73,6 +73,28 @@ export class DepositService {
     return this.toClientOrder(refreshed ?? deposit);
   }
 
+  async getActiveForUser(userId: string) {
+    const active = await this.prisma.deposit.findFirst({
+      where: {
+        userId,
+        status: {
+          in: [
+            'PENDING_PAYMENT',
+            'PAYMENT_SUBMITTED',
+            'VERIFICATION_PENDING',
+            'MANUAL_REVIEW',
+          ],
+        },
+      },
+      orderBy: {createdAt: 'desc'},
+    });
+    if (!active) return {item: null};
+    await this.expireIfNeeded(active.id, active.status, active.expiresAt);
+    const refreshed = await this.prisma.deposit.findUnique({where: {id: active.id}});
+    if (!refreshed || refreshed.status === 'EXPIRED') return {item: null};
+    return {item: this.toClientOrder(refreshed)};
+  }
+
   async submitPayment(
     userId: string,
     depositId: string,

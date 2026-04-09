@@ -169,6 +169,24 @@ export default function DepositScreen(): React.JSX.Element {
   };
 
   useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await depositApi.getActive();
+        if (mounted && res.data.item) {
+          setOrder(res.data.item);
+          setPollAttempts(0);
+        }
+      } catch {
+        // si falla la recuperación, dejamos flujo normal de creación
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!order) return;
     if (currentStep !== 'verifying') return;
     let cancelled = false;

@@ -143,6 +143,7 @@ export const depositApi = {
   verify: (id: string) => api.post<DepositOrder>(`/deposit/${id}/verify`),
   sendToManualReview: (id: string, reason?: string) =>
     api.post<DepositOrder>(`/deposit/${id}/manual-review`, {reason}),
+  getActive: () => api.get<{item: DepositOrder | null}>('/deposit/active/current'),
   list: (params?: {page?: number; limit?: number}) =>
     api.get<{
       items: DepositOrder[];

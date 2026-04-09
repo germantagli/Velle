@@ -40,6 +40,11 @@ export class DepositController {
     );
   }
 
+  @Get('active/current')
+  async getActive(@CurrentUser() user: {id: string}) {
+    return this.deposit.getActiveForUser(user.id);
+  }
+
   @Get(':id')
   async getOne(
     @CurrentUser() user: {id: string},
