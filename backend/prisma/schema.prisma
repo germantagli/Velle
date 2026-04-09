@@ -165,17 +165,39 @@ model Deposit {
   id            String       @id @default(cuid())
   userId        String       @map("user_id")
   amount        Decimal      @db.Decimal(18, 2)
+  amountRequested Decimal    @map("amount_requested") @db.Decimal(18, 2)
+  exactAmountToPay Decimal   @map("exact_amount_to_pay") @db.Decimal(18, 2)
   reference     String       @unique
-  status        DepositStatus @default(PENDING)
+  status        DepositStatus @default(PENDING_PAYMENT)
+  expiresAt     DateTime     @map("expires_at")
+  paymentSubmittedAt DateTime? @map("payment_submitted_at")
+  verificationStartedAt DateTime? @map("verification_started_at")
+  verifiedAt    DateTime?    @map("verified_at")
+  confirmedAt   DateTime?    @map("confirmed_at")
+  creditedAt    DateTime?    @map("credited_at")
+  payerPhone    String?      @map("payer_phone")
+  payerBank     String?      @map("payer_bank")
+  payerReference String?     @map("payer_reference")
+  payerReceiptUrl String?    @map("payer_receipt_url")
+  bankProviderResult Json?   @map("bank_provider_result")
+  bankReconciliationRef String? @map("bank_reconciliation_ref")
+  manualReviewReason String? @map("manual_review_reason")
+  reviewedBy    String?      @map("reviewed_by")
+  reviewedAt    DateTime?    @map("reviewed_at")
   createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
 
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum DepositStatus {
-  PENDING
+  PENDING_PAYMENT
+  PAYMENT_SUBMITTED
+  VERIFICATION_PENDING
   CONFIRMED
+  MANUAL_REVIEW
   REJECTED
+  EXPIRED
 }
 
 model Withdrawal {

@@ -40,14 +40,43 @@ export class DepositController {
     );
   }
 
-  /** Endpoint admin: confirmar depósito (en producción usar rol admin) */
-  @Post(':id/confirm')
-  async confirm(@Param('id') id: string) {
-    return this.deposit.confirm(id);
+  @Get(':id')
+  async getOne(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+  ) {
+    return this.deposit.getOne(user.id, id);
   }
 
-  @Post(':id/reject')
-  async reject(@Param('id') id: string) {
-    return this.deposit.reject(id);
+  @Post(':id/submit-payment')
+  async submitPayment(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+    @Body()
+    body: {
+      payerPhone: string;
+      payerBank: string;
+      payerReference?: string;
+      payerReceiptUrl?: string;
+    },
+  ) {
+    return this.deposit.submitPayment(user.id, id, body);
+  }
+
+  @Post(':id/verify')
+  async verify(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+  ) {
+    return this.deposit.verify(id, {trigger: 'polling', userId: user.id});
+  }
+
+  @Post(':id/manual-review')
+  async manualReview(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+    @Body() body: {reason?: string},
+  ) {
+    return this.deposit.markManualReview(user.id, id, body.reason);
   }
 }

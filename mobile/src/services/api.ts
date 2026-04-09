@@ -126,18 +126,55 @@ export const walletApi = {
 // Deposit (VES)
 export const depositApi = {
   create: (amount: number) =>
-    api.post<{id: string; amount: number; reference: string; status: string; instructions: string}>(
+    api.post<DepositOrder>(
       '/deposit',
       {amount},
     ),
+  getOne: (id: string) => api.get<DepositOrder>(`/deposit/${id}`),
+  submitPayment: (
+    id: string,
+    data: {
+      payerPhone: string;
+      payerBank: string;
+      payerReference?: string;
+      payerReceiptUrl?: string;
+    },
+  ) => api.post<DepositOrder>(`/deposit/${id}/submit-payment`, data),
+  verify: (id: string) => api.post<DepositOrder>(`/deposit/${id}/verify`),
+  sendToManualReview: (id: string, reason?: string) =>
+    api.post<DepositOrder>(`/deposit/${id}/manual-review`, {reason}),
   list: (params?: {page?: number; limit?: number}) =>
     api.get<{
-      items: {id: string; amount: string; reference: string; status: string; createdAt: string}[];
+      items: DepositOrder[];
       total: number;
       page: number;
       limit: number;
     }>('/deposit', {params}),
 };
+
+export interface DepositOrder {
+  id: string;
+  amount: string;
+  amountRequested: string;
+  exactAmountToPay: string;
+  reference: string;
+  status: string;
+  expiresAt: string;
+  payerPhone?: string | null;
+  payerBank?: string | null;
+  payerReference?: string | null;
+  payerReceiptUrl?: string | null;
+  bankReconciliationRef?: string | null;
+  manualReviewReason?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  instructions: {
+    bankName: string;
+    receiverPhone: string;
+    receiverDocument: string;
+    amountToTransfer: string;
+  };
+}
 
 // Conversion
 export const conversionApi = {
@@ -374,6 +411,18 @@ export const adminApi = {
     api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/documents/${documentId}/approve`),
   rejectDocument: (userId: string, documentId: string, reason?: string) =>
     api.post<{status: string; message: string}>(`/admin/kyc/users/${userId}/documents/${documentId}/reject`, {reason}),
+  listDeposits: (status?: string) =>
+    api.get<{items: (DepositOrder & {user?: {id: string; email: string; firstName: string; lastName: string; phone: string | null}})[]}>(
+      '/admin/deposits',
+      {params: status ? {status} : undefined},
+    ),
+  getDeposit: (id: string) =>
+    api.get<DepositOrder & {user?: {id: string; email: string; firstName: string; lastName: string; phone: string | null}}>(
+      `/admin/deposits/${id}`,
+    ),
+  approveDeposit: (id: string) => api.post(`/admin/deposits/${id}/approve`),
+  rejectDeposit: (id: string, reason?: string) =>
+    api.post(`/admin/deposits/${id}/reject`, {reason}),
 };
 
 // Notifications (inbox)

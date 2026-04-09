@@ -79,6 +79,14 @@ export default function ProfileScreen(): React.JSX.Element {
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         )}
+        {user?.isAdmin && (
+          <TouchableOpacity
+            style={[styles.menuItem, styles.menuItemAdmin]}
+            onPress={() => navigation.navigate('AdminDepositList')}>
+            <Text style={styles.menuText}>Revisar depósitos VES</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        )}
         {(user?.kycStatus !== 'VERIFIED' && user?.kycStatus !== 'UNDER_REVIEW') && (
           <TouchableOpacity
             style={styles.menuItem}

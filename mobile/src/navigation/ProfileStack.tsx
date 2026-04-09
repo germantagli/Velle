@@ -13,6 +13,8 @@ import SupportLocalChatScreen from '../screens/profile/SupportLocalChatScreen';
 import LanguageScreen from '../screens/profile/LanguageScreen';
 import AdminKYCListScreen from '../screens/admin/AdminKYCListScreen';
 import AdminKYCUserDetailScreen from '../screens/admin/AdminKYCUserDetailScreen';
+import AdminDepositListScreen from '../screens/admin/AdminDepositListScreen';
+import AdminDepositDetailScreen from '../screens/admin/AdminDepositDetailScreen';
 import NotificationInboxScreen from '../screens/notifications/NotificationInboxScreen';
 
 export type ProfileStackParamList = {
@@ -28,6 +30,8 @@ export type ProfileStackParamList = {
   Language: undefined;
   AdminKYCList: undefined;
   AdminKYCUserDetail: {userId: string};
+  AdminDepositList: undefined;
+  AdminDepositDetail: {depositId: string};
 };
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
@@ -110,6 +114,16 @@ export default function ProfileStack(): React.JSX.Element {
             />
           ),
         })}
+      />
+      <Stack.Screen
+        name="AdminDepositList"
+        component={AdminDepositListScreen}
+        options={{title: 'Revisar depósitos'}}
+      />
+      <Stack.Screen
+        name="AdminDepositDetail"
+        component={AdminDepositDetailScreen}
+        options={{title: 'Detalle depósito'}}
       />
     </Stack.Navigator>
   );
