@@ -3,7 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import {DepositStatus} from '@prisma/client';
+import {DepositStatus, Prisma} from '@prisma/client';
 import {PrismaService} from '../prisma/prisma.service';
 import {ConfigService} from '../config/config.service';
 import {ConversionService} from '../conversion/conversion.service';
@@ -290,8 +290,8 @@ export class DepositService {
           confirmedAt: new Date(),
           bankReconciliationRef: opts?.reconciliationRef ?? deposit.bankReconciliationRef ?? null,
           bankProviderResult: opts?.providerResult
-            ? (opts.providerResult as object)
-            : deposit.bankProviderResult,
+            ? (opts.providerResult as Prisma.InputJsonValue)
+            : (deposit.bankProviderResult ?? Prisma.JsonNull),
           reviewedBy: opts?.reviewedBy ?? deposit.reviewedBy ?? null,
           reviewedAt: opts?.reviewedBy ? new Date() : deposit.reviewedAt,
         },
