@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import {DepositStatus, Prisma} from '@prisma/client';
 import {PrismaService} from '../prisma/prisma.service';
@@ -29,19 +30,46 @@ export class DepositService {
     const reference = `DEP-${Date.now()}-${userId.slice(-6).toUpperCase()}`;
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    const deposit = await this.prisma.deposit.create({
-      data: {
-        userId,
-        amount: exactAmountToPay,
-        amountRequested,
-        exactAmountToPay,
-        reference,
-        status: 'PENDING_PAYMENT',
-        expiresAt,
-      },
-    });
+    let deposit: any;
+    try {
+      deposit = await this.prisma.deposit.create({
+        data: {
+          userId,
+          amount: exactAmountToPay,
+          amountRequested,
+          exactAmountToPay,
+          reference,
+          status: 'PENDING_PAYMENT',
+          expiresAt,
+        },
+      });
+    } catch (error) {
+      this.rethrowIfDepositSchemaMismatch(error);
+      throw error;
+    }
 
     return this.toClientOrder(deposit);
+  }
+
+  private rethrowIfDepositSchemaMismatch(error: unknown): never | void {
+    const msg =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : '';
+
+    if (
+      msg.includes('P3009') ||
+      msg.includes('column') ||
+      msg.includes('does not exist') ||
+      msg.includes('DepositStatus') ||
+      msg.includes('PENDING_PAYMENT')
+    ) {
+      throw new ServiceUnavailableException(
+        'Depositos temporalmente no disponibles. Intenta nuevamente en unos minutos.',
+      );
+    }
   }
 
   /** Lista depósitos del usuario */
