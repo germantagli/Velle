@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -83,5 +84,13 @@ export class DepositController {
     @Body() body: {reason?: string},
   ) {
     return this.deposit.markManualReview(user.id, id, body.reason);
+  }
+
+  @Delete(':id')
+  async deleteOrder(
+    @CurrentUser() user: {id: string},
+    @Param('id') id: string,
+  ) {
+    return this.deposit.deleteOrder(user.id, id);
   }
 }

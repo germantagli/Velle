@@ -287,6 +287,23 @@ export class DepositService {
     return this.toClientOrder(updated);
   }
 
+  async deleteOrder(userId: string, depositId: string) {
+    const deposit = await this.prisma.deposit.findFirst({
+      where: {id: depositId, userId},
+    });
+    if (!deposit) throw new NotFoundException('Dep?sito no encontrado');
+
+    if (deposit.status === 'CONFIRMED' || deposit.status === 'REJECTED') {
+      throw new BadRequestException('No se puede eliminar un dep?sito ya procesado');
+    }
+
+    await this.prisma.deposit.delete({
+      where: {id: depositId},
+    });
+
+    return {deleted: true};
+  }
+
   /** Confirma un depósito (admin/sistema): acredita balance_ves, opcionalmente convierte a USDT */
   async confirm(
     depositId: string,

@@ -34,6 +34,7 @@ export default function DepositScreen(): React.JSX.Element {
   const {t} = useTranslation();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(false);
   const [submittingPayment, setSubmittingPayment] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [order, setOrder] = useState<DepositOrder | null>(null);
@@ -99,6 +100,33 @@ export default function DepositScreen(): React.JSX.Element {
     setPayerBank('Banesco');
     setPayerReference('');
     setPayerReceiptUrl('');
+  };
+
+  const handleClosePayment = () => {
+    Alert.alert(
+      'Eliminar pago',
+      'Se eliminará esta orden de pago y volverás al inicio.',
+      [
+        {text: 'Cancelar', style: 'cancel'},
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            if (!order) return;
+            setDeletingOrder(true);
+            try {
+              await depositApi.delete(order.id);
+              handleReset();
+            } catch (e: any) {
+              const msg = e.response?.data?.message || e.message || 'No se pudo eliminar el pago';
+              Alert.alert('Error', msg);
+            } finally {
+              setDeletingOrder(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const refreshOrder = async () => {
@@ -260,7 +288,17 @@ export default function DepositScreen(): React.JSX.Element {
 
       {(currentStep === 'instructions' || currentStep === 'confirm_form') && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Datos para pagar</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Datos para pagar</Text>
+            <TouchableOpacity
+              onPress={handleClosePayment}
+              accessibilityRole="button"
+              accessibilityLabel="Eliminar pago"
+              disabled={deletingOrder}
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+              <Text style={[styles.closeButtonText, deletingOrder && styles.buttonDisabled]}>✕</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.itemLabel}>Banco destino</Text>
           <Text style={styles.itemValue}>{order.instructions.bankName}</Text>
           <TouchableOpacity onPress={() => shareValue('Banco destino', order.instructions.bankName)}>
@@ -439,7 +477,19 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 14,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   cardTitle: {fontSize: 18, fontWeight: '700', color: '#1f2937', marginBottom: 12},
+  closeButtonText: {
+    fontSize: 22,
+    lineHeight: 22,
+    color: '#64748b',
+    fontWeight: '700',
+  },
   itemLabel: {fontSize: 12, color: '#666', marginTop: 8},
   itemValue: {fontSize: 16, color: '#111827', fontWeight: '600'},
   subAmount: {fontSize: 13, color: '#475569', marginBottom: 8},
