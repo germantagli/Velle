@@ -11,8 +11,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Share,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {DepositOrder, depositApi} from '../../services/api';
 import {useQueryClient} from '@tanstack/react-query';
 
@@ -29,6 +29,8 @@ type UiStep =
 
 const MAX_POLL_ATTEMPTS = 8;
 const POLL_INTERVAL_MS = 3500;
+const MAX_DEPOSIT_AMOUNT = 500000;
+const DECIMAL_REGEX = /^\d+(\.\d{0,2})?$/;
 
 export default function DepositScreen(): React.JSX.Element {
   const {t} = useTranslation();
@@ -46,6 +48,8 @@ export default function DepositScreen(): React.JSX.Element {
   const [payerReceiptUrl, setPayerReceiptUrl] = useState('');
 
   const queryClient = useQueryClient();
+
+  const normalizedAmount = useMemo(() => amount.replace(',', '.').trim(), [amount]);
 
   const currentStep = useMemo<UiStep>(() => {
     if (!order) return 'create';
@@ -71,11 +75,32 @@ export default function DepositScreen(): React.JSX.Element {
   }, [order, forceConfirmForm, pollAttempts]);
 
   const handleCreate = async () => {
-    const amountNum = parseFloat(amount) || 0;
-    if (amountNum <= 0) {
+    if (!normalizedAmount) {
       Alert.alert(t('common.error'), t('wallet.enterValidAmount'));
       return;
     }
+
+    if (!DECIMAL_REGEX.test(normalizedAmount)) {
+      Alert.alert(
+        t('common.error'),
+        'Ingresa un monto válido con máximo 2 decimales (ej: 1500.50).',
+      );
+      return;
+    }
+
+    const amountNum = parseFloat(normalizedAmount) || 0;
+    if (amountNum < 1) {
+      Alert.alert(t('common.error'), 'El monto mínimo es 1 VES.');
+      return;
+    }
+    if (amountNum > MAX_DEPOSIT_AMOUNT) {
+      Alert.alert(
+        t('common.error'),
+        `El monto máximo permitido es ${MAX_DEPOSIT_AMOUNT.toLocaleString('es-VE')} VES.`,
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await depositApi.create(amountNum);
@@ -192,8 +217,9 @@ export default function DepositScreen(): React.JSX.Element {
     }
   };
 
-  const shareValue = async (label: string, value: string) => {
-    await Share.share({message: `${label}: ${value}`});
+  const copyValue = async (value: string) => {
+    Clipboard.setString(value);
+    Alert.alert('Copiado', 'Valor copiado al portapapeles.');
   };
 
   useEffect(() => {
@@ -260,13 +286,24 @@ export default function DepositScreen(): React.JSX.Element {
           <Text style={styles.label}>Monto deseado en VES</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej: 1000"
+            placeholder="Ej: 1000 o 1000.50"
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={text => {
+              const cleaned = text
+                .replace(',', '.')
+                .replace(/[^\d.]/g, '')
+                .replace(/^(\d*\.\d*).*$/, '$1');
+              const [intPart, decPart] = cleaned.split('.');
+              const safeInt = (intPart || '').replace(/^0+(?=\d)/, '');
+              const safeDec = decPart !== undefined ? decPart.slice(0, 2) : undefined;
+              setAmount(safeDec !== undefined ? `${safeInt}.${safeDec}` : safeInt);
+            }}
             keyboardType="decimal-pad"
             editable={!loading}
           />
-          <Text style={styles.hint}>Mínimo 1 VES. Se generará un monto exacto para conciliación.</Text>
+          <Text style={styles.hint}>
+            Mínimo 1 VES y máximo {MAX_DEPOSIT_AMOUNT.toLocaleString('es-VE')} VES. Máximo 2 decimales.
+          </Text>
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleCreate}
@@ -301,20 +338,23 @@ export default function DepositScreen(): React.JSX.Element {
           </View>
           <Text style={styles.itemLabel}>Banco destino</Text>
           <Text style={styles.itemValue}>{order.instructions.bankName}</Text>
-          <TouchableOpacity onPress={() => shareValue('Banco destino', order.instructions.bankName)}>
-            <Text style={styles.copyText}>Copiar banco</Text>
+          <TouchableOpacity style={styles.copyButton} onPress={() => copyValue(order.instructions.bankName)}>
+            <Text style={styles.copyIcon}>📋</Text>
+            <Text style={styles.copyText}>Copiar</Text>
           </TouchableOpacity>
 
           <Text style={styles.itemLabel}>Teléfono receptor</Text>
           <Text style={styles.itemValue}>{order.instructions.receiverPhone}</Text>
-          <TouchableOpacity onPress={() => shareValue('Teléfono receptor', order.instructions.receiverPhone)}>
-            <Text style={styles.copyText}>Copiar teléfono</Text>
+          <TouchableOpacity style={styles.copyButton} onPress={() => copyValue(order.instructions.receiverPhone)}>
+            <Text style={styles.copyIcon}>📋</Text>
+            <Text style={styles.copyText}>Copiar</Text>
           </TouchableOpacity>
 
           <Text style={styles.itemLabel}>RIF / Cédula receptor</Text>
           <Text style={styles.itemValue}>{order.instructions.receiverDocument}</Text>
-          <TouchableOpacity onPress={() => shareValue('Documento receptor', order.instructions.receiverDocument)}>
-            <Text style={styles.copyText}>Copiar documento</Text>
+          <TouchableOpacity style={styles.copyButton} onPress={() => copyValue(order.instructions.receiverDocument)}>
+            <Text style={styles.copyIcon}>📋</Text>
+            <Text style={styles.copyText}>Copiar</Text>
           </TouchableOpacity>
 
           <Text style={styles.itemLabel}>Monto exacto a transferir</Text>
@@ -324,8 +364,9 @@ export default function DepositScreen(): React.JSX.Element {
           <Text style={styles.subAmount}>
             Solicitado: {Number(order.amountRequested).toLocaleString('es-VE', {minimumFractionDigits: 2})} VES
           </Text>
-          <TouchableOpacity onPress={() => shareValue('Monto exacto', order.exactAmountToPay)}>
-            <Text style={styles.copyText}>Copiar monto</Text>
+          <TouchableOpacity style={styles.copyButton} onPress={() => copyValue(order.exactAmountToPay)}>
+            <Text style={styles.copyIcon}>📋</Text>
+            <Text style={styles.copyText}>Copiar</Text>
           </TouchableOpacity>
           <Text style={styles.hint}>
             Referencia de orden: {order.reference} · Expira: {new Date(order.expiresAt).toLocaleTimeString('es-VE')}
@@ -493,7 +534,16 @@ const styles = StyleSheet.create({
   itemLabel: {fontSize: 12, color: '#666', marginTop: 8},
   itemValue: {fontSize: 16, color: '#111827', fontWeight: '600'},
   subAmount: {fontSize: 13, color: '#475569', marginBottom: 8},
-  copyText: {fontSize: 13, color: '#0066CC', marginTop: 4, marginBottom: 6},
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  copyIcon: {fontSize: 14},
+  copyText: {fontSize: 13, color: '#0066CC'},
   successCard: {
     backgroundColor: '#f0fdf4',
     borderRadius: 16,
